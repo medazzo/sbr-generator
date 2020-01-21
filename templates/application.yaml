@@ -1,0 +1,75 @@
+spring:
+  profiles:
+    active: "dev"
+  main:
+    banner-mode: "off"
+  output:
+    ansi:
+      enabled: DETECT
+
+server:
+  servlet:
+    context-path: {{project.restPath}}/{{project.version}}
+---
+
+spring:
+  profiles: dev
+  datasource:
+    url: {{dbDev.url}}
+    username: {{dbDev.username}}
+    password: {{dbDev.password}}
+    driverClassName: {{dbDev.driverClassName}}
+  jpa:
+    generate-ddl: true
+    properties:
+      hibernate:
+        default_schema: public
+        dialect: {{dbDev.dialect}}
+    hibernate:
+      ddl-auto: {{dbDev.ddlauto}}
+    show-sql: true
+  jackson:
+    serialization:
+      FAIL_ON_EMPTY_BEANS: False
+---
+
+spring:
+  profiles: test
+  datasource:
+    url: {{dbTest.url}}
+    username: {{dbTest.username}}
+    password: {{dbTest.password}}
+    driverClassName: {{dbTest.driverClassName}}
+    jpa:
+      generate-ddl: true
+      properties:
+        hibernate:
+          default_schema: public
+          dialect: {{dbTest.dialect}}
+      hibernate:
+        ddl-auto: {{dbTest.ddlauto}}
+      show-sql: true
+    jackson:
+      serialization:
+        FAIL_ON_EMPTY_BEANS: False
+---
+
+spring:
+  profiles: prod
+  datasource:
+    url: {{dbProd.url}}
+    username: {{dbProd.username}}
+    password: {{dbProd.password}}
+    driverClassName: {{dbProd.driverClassName}}
+    jpa:
+      generate-ddl: true
+      properties:
+        hibernate:
+          default_schema: public
+          dialect: {{dbProd.dialect}}
+      hibernate:
+        ddl-auto: {{dbProd.ddlauto}}
+      show-sql: true
+    jackson:
+      serialization:
+        FAIL_ON_EMPTY_BEANS: False

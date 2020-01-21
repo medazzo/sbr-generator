@@ -1,0 +1,165 @@
+---
+project:
+  longname: Easy Soft IN Selling Server
+  description: Easin Selling Server
+  url: http://easysoft-in.com
+  name: serverTest
+  restPath: /serverTest
+  package: com.easin.serverTest
+  version: 0.0.1-SNAP
+  security:
+    # When security is enabled roles are mandatory
+    # by default access is granted on CRUD for all entity
+    # This can be modified by adding under entity
+    # forbidden:
+    # security:
+    #   - C: # to refer Create Operation
+    #     - "ROLE2"
+    #   - R: # to refer READ Operation
+    #     - "ROLE1"
+    #   - RA: # to refer READ ALL Operation
+    #     - "ROLE2"
+    #   - U: # to refer Update Operation
+    #     - "ROLE2"
+    #   - D: # to refer Delete Operation
+    #     - "ROLE1"
+    # To make operation open without any security checks use
+    #  opens:
+    #    - C: # to refer Create Operation
+    #    - R: # to refer READ Operation
+    #    - RA: # to refer READ ALL Operation
+    #    - U: # to refer Update Operation
+    #
+    enableRoles: True
+    roles:
+      - "USER"
+      - "ADMIN"
+      - "CLIENT"
+database:
+  test:
+    url: jdbc:h2:mem:test;DB_CLOSE_ON_EXIT=FALSE
+    dialect: org.hibernate.dialect.H2Dialect
+    driverClassName: org.h2.Driver
+    username: easin
+    password: ''
+    ddlauto: create
+  dev:
+    url: jdbc:h2:~/database.h2;DB_CLOSE_ON_EXIT=FALSE
+    dialect: org.hibernate.dialect.H2Dialect
+    driverClassName: org.h2.Driver
+    username: easin
+    password: ''
+    ddlauto: update
+  prod:
+    url: jdbc:postgresql://localhost:5432/essDB
+    dialect: org.hibernate.dialect.PostgreSQL82Dialect
+    driverClassName: org.postgresql.Driver
+    username: easin
+    password: Easin
+    ddlauto: update
+logging:
+  RootLoggerLevel: trace
+  Loggers:
+    - name: com.easin
+      level: trace
+    - name: org.springframework.web.client.RestTemplate
+      level: trace
+    - name: org.apache.catalina.filters.RequestDumperFilter
+      level: trace
+entities:
+  - name: User
+    comment: Class representing the User parameters
+    fields:
+      - name: mail
+        type: String
+        comment: the official Mail of the User
+        annotations:
+          - "@Email"
+      - name: phone
+        type: String
+        comment: the official Phone number of the User
+        annotations:  []
+      - name: name
+        comment: name of the User
+        annotations:
+          - "@Column(nullable = false)"
+        type: String
+  - name: Company
+    crudRest: true
+    baseclass: BaseEntity
+    comment: Class representing the company parameters
+    fields:
+      - name: user
+        comment: User created
+        annotations:
+          - '@JoinColumn(name="user_id", insertable=false, updatable=false)'
+          - "@ManyToOne(targetEntity = User.class, fetch = FetchType.EAGER)"
+          - "@JsonIgnore"
+          - "@ToString.Exclude"
+        type: User
+      - name: userId
+        comment: 'id of the user '
+        annotations:
+          - '@Column(name = "user_id", nullable = false)'
+        type: String
+      - name: mail
+        type: String
+        comment: the official Mail of the company
+        annotations:
+          - "@Email"
+      - name: phone
+        type: String
+        comment: the official Phone number of the company
+        annotations:  []
+      - name: tvaRate
+        type: Integer
+        comment: tva Rate of the Company
+        annotations:
+          - "@Column(nullable = false)"
+          - '@Min(value = 1L, message = "The value must be positive")'
+          - '@Max(value = 50L, message = "The value must lesser than 50")'
+      - name: tvaCode
+        type: String
+        comment: tva Code of the Company
+        annotations:
+          - "@Column(nullable = false)"
+      - name: name
+        comment: name of the Company
+        annotations:
+          - "@Column(nullable = false)"
+        type: String
+  - name: Legal
+    baseclass: BaseEntity
+    comment: Class representing the Legal parameters
+    fields:
+      - name: legalStatus
+        comment: Legal status of the company SAS , SARL
+        annotations:
+          - "@Column(nullable = false)"
+        type: String
+  - name: Address
+    baseclass: BaseEntity
+    comment: Class representing the Address parameters
+    fields:
+      - name: address
+        comment: address of the Company
+        annotations:
+          - "@Column(nullable = false)"
+        type: String
+      - name: zipcode
+        comment: zipcode of the Company
+        annotations:
+          - "@Column(nullable = false)"
+        type: Integer
+      - name: town
+        comment: town of the Company
+        annotations:
+          - "@Column(nullable = false)"
+        type: String
+      - name: contry
+        comment: contry of the Company
+        annotations:
+          - "@Column(nullable = false)"
+        type: String
+
+

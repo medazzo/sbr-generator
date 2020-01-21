@@ -1,0 +1,43 @@
+{% raw %}<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <Property name="LOG_PATTERN">
+            %d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${hostName} --- [%15.15t] %-40.40c{1.} : %m%n%ex
+        </Property>
+        <Property name="LOG_PATTERN_2">
+            %style{%d{ISO8601}}{black} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{bright,yellow}:
+            %msg%n%throwable
+        </Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>{% endraw %}
+        <RollingFile name="RollingFile"
+                     fileName="/usr/share/tomcat/{{logger.projectName}}/logs/{{logger.projectName}}-logger-log4j2.log"
+                     filePattern="/usr/share/tomcat/{{logger.projectName}}/logs/$${date:yyyy-MM}/{{logger.projectName}}-logger-log4j2-%d{-dd-MMMM-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <pattern>%d %p %C{1.} [%t] %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <!-- rollover on startup, daily and when the file reaches 
+                    10 MegaBytes -->
+                <OnStartupTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy
+                        size="10 MB"/>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- LOG everything at INFO level -->
+        <Root level="{{logger.RootLoggerLevel}}">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+        {% for logg in logger.Loggers %}
+        <Logger name="{{logg.name}}" level="{{logg.level}}"></Logger>{% endfor %}
+    </Loggers>
+
+</Configuration>
