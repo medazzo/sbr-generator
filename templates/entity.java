@@ -25,7 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 public class {{entity.name}} extends BaseEntity {
    {% for field in entity.fields | sort(attribute='name') %}
     /** {{field.comment}} */
-    {% for annot in field.annotations  %}{{annot}}{% endfor %}
+    {% for annot in field.annotations  %}
+    {{annot}}{% endfor %}
     private {{field.type}} {{field.name}};
    {% endfor %}
     public {{entity.name}}() {

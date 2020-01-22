@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import io.swagger.annotations.ApiModelProperty;
 
 @Getter
 @Setter
@@ -28,19 +29,23 @@ public abstract class BaseEntity implements Serializable {
     @Id
     @GeneratedValue(generator = "system-uuid", strategy = GenerationType.IDENTITY)
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
+    @ApiModelProperty(hidden = true)
     protected String Id;
 
     @Version
+    @ApiModelProperty(hidden = true)
     private Integer version;
 
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     @CreatedDate
+    @ApiModelProperty(hidden = true)
     private Date createdAt;
 
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     @LastModifiedDate
+    @ApiModelProperty(hidden = true)
     private Date updatedAt;
 
 

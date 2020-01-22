@@ -26,6 +26,9 @@ class Analyser:
         for ent in config['entities']:
             e = Entity(project, ent['name'], ent['comment'], ent['fields'])
             self.AllEntities.append(e)
+        # re-checks for links
+        for ent in self.AllEntities:
+            ent.checkforLinks(self.AllEntities)
         print("{} Entities  has been Analysed .".format(len(self.AllEntities)))
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

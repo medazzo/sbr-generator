@@ -115,3 +115,13 @@ class Entity():
             f =  Field(fi['name'], fi['type'],fi['comment'], fi['annotations'])
             self.fields.append(f)            
         print("> > {} Field's  has been Analysed .".format(len(self.fields)))
+    
+    """ Function will loop into fields and replace entity name by id """
+    def checkforLinks(self, othersEntitys):
+        print("> > {} Recheking Fields for links to others entity.".format(len(self.fields)))
+        for field in self.fields:
+            for ent in othersEntitys:
+                if ent.name == field.type :
+                    print("> > Entity {} , Field {} is having relation with Entity {} .. Updating ..".format(self.name ,field.name, field.type))
+                    field.type = "String"
+

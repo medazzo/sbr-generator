@@ -2,3 +2,8 @@
 */*.pyc
 .code/*
 .idea/*
+.project
+.classpath
+.factorypath
+templates/.classpath
+templates/.settings/*
