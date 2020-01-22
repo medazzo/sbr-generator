@@ -9,6 +9,24 @@
 # This file contains class for easin generator with some checkers helpers
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 from enum import Enum, unique
+import coloredlogs, logging
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  Helper Class
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+class Helper:
+    # Create a logger object.
+    logger = logging.getLogger(__name__)
+    coloredlogs.install(level='DEBUG',
+                        logger=logger,
+                        fmt='%(asctime)s,%(msecs)03d %(hostname)s %(name)s[%(process)d] %(levelname)s %(message)s')
+
+    def __init__(self):
+        logger.debug("= = = = = = = = = = = = = = = = = = = = = = = = = = = = =")
+        logger.info(" - - - Testing color")
+        logger.warning(" - - - Testing color")
+        logger.error(" - - - Testing color")
+        logger.critical(" - - - Testing color")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Project Class
@@ -67,6 +85,7 @@ class Field:
     """ A Fields definition class"""
     def __init__(self, name=None, type="String", comment=None, annotations=list()):
         if not isinstance(annotations, list):
+            Helper.logger.critical('annotations must be a list of strings: '+annotations+'  !.' )
             raise TypeError('annotations must be a list of strings: '+annotations+'  !.' )
         self.name = name
         self.type = type
@@ -85,7 +104,7 @@ class Configuration():
         for fi in config['logging']['Loggers']:
             f = Logger(fi['name'], fi['level'])
             self.Loggers.append(f)
-        print("> > {} Loggers  has been Analysed .".format(len(self.Loggers)))
+        Helper.logger.info("> > {} Loggers  has been Analysed .".format(len(self.Loggers)))
         # Setup extra DB  params
         self.databaseProd = Database(config['database']['prod']['url'], config['database']['prod']['dialect'],
                                     config['database']['prod']['driverClassName'], config['database']['prod']['username'],
@@ -109,19 +128,20 @@ class Entity():
         self.fieldsconfig = fieldsconfig
         self.comment = comment
         if not isinstance(fieldsconfig, list):
+            Helper.logger.critical('fields must be a list of Field')
             raise TypeError('fields must be a list of Field')
-        print("> Analysing Entity {} ..".format(self.name))
+        Helper.logger.info("> Analysing Entity {} ..".format(self.name))
         for fi in self.fieldsconfig:
             f =  Field(fi['name'], fi['type'],fi['comment'], fi['annotations'])
             self.fields.append(f)            
-        print("> > {} Field's  has been Analysed .".format(len(self.fields)))
+        Helper.logger.debug("> > {} Field's  has been Analysed .".format(len(self.fields)))
     
     """ Function will loop into fields and replace entity name by id """
     def checkforLinks(self, othersEntitys):
-        print("> > {} Recheking Fields for links to others entity.".format(len(self.fields)))
+        Helper.logger.debug("> > {} Rechecking Fields for links to others entity.".format(len(self.fields)))
         for field in self.fields:
             for ent in othersEntitys:
                 if ent.name == field.type :
-                    print("> > Entity {} , Field {} is having relation with Entity {} .. Updating ..".format(self.name ,field.name, field.type))
+                    Helper.logger.warn("> > Entity {} , Field {} is having relation with Entity {} .. Updating ..".format(self.name ,field.name, field.type))
                     field.type = "String"
 

@@ -11,6 +11,7 @@ To use PyGenerator  make sur to install python, pyyaml, jinja2 and lxml python l
 ```
 pip install jinja2
 pip install pyyaml
+pip install coloredlogs
 ```
 ## Generate
 Run example using embedded yaml configuration 
