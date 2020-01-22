@@ -10,7 +10,7 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import sys, argparse
 from easinAnalyser import ConfigLoader, Analyser
-from easinModels import Project
+from easinModels import Project, Helper
 import pprint, os, shutil
 import jinja2
 
@@ -44,8 +44,10 @@ class Generator:
     Template_Dir            = "templates"
     def __init__(self, outputDir=None, verbose=False, project = None):
         if not isinstance(project, Project):
+            Helper.logger.critical('project must be of Project type !.')
             raise TypeError('project must be of Project type !.')
         if not outputDir:
+            Helper.logger.critical('The output Dir  must be non null')
             raise TypeError('The output Dir  must be non null')
         self.__project = project
         self.outputDir = outputDir
@@ -84,12 +86,12 @@ class Generator:
         servicesDirs = self.__srcdir + '/' + Project.Services_folder
         os.makedirs(servicesDirs)
         for ent in self.entities:
-            print("> Generating Class for Entity {} .".format(ent.name))
+            Helper.logger.debug("> Generating Class for Entity {} .".format(ent.name))
             output = templateEntity.render(package=self.__project.package+"."+Project.Entities_folder,entity=ent).encode("utf-8")
             f = open(entityDirs+'/'+ent.name+'.java', 'wb')
             f.write(output)
             f.close()
-            print("> Generating Repository for Entity {} .".format(ent.name))
+            Helper.logger.debug("> Generating Repository for Entity {} .".format(ent.name))
             # Generate
             output = templateRepo.render(package=self.__project.package+"."+Project.Repositories_folder,
                                          Entitypackage=self.__project.package+"."+Project.Entities_folder+"."+ent.name,
@@ -97,7 +99,7 @@ class Generator:
             f = open(entityRepoDirs+'/'+ent.name+Project.Repository_prepend+'.java', 'wb')
             f.write(output)
             f.close()
-            print("> Generating Controller for Entity {} .".format(ent.name))
+            Helper.logger.debug("> Generating Controller for Entity {} .".format(ent.name))
             # Generate
             output = templateController.render(projectPackage=self.__project.package,
                                                package=self.__project.package+"."+Project.Controllers_folder,
@@ -108,7 +110,7 @@ class Generator:
             f = open(controllersDirs + '/' + ent.name +Project.Controller_prepend + '.java', 'wb')
             f.write(output)
             f.close()
-            print("> Generating Service for Entity {} .".format(ent.name))
+            Helper.logger.debug("> Generating Service for Entity {} .".format(ent.name))
             # Generate
             output = templateService.render(projectPackage=self.__project.package,
                                             package=self.__project.package+"."+Project.Services_folder,
@@ -122,7 +124,7 @@ class Generator:
             f.close()
         if len(self.entities) > 0:
             # Generate
-            print("> Generating Base entity file ..")
+            Helper.logger.debug("> Generating Base entity file ..")
             template = self.templateEnv.get_template(Generator.BaseEntity_Template)
             output = template.render(package=self.__project.package + "." + Project.Entities_folder).encode("utf-8")
             f = open(entityDirs + '/' + Generator.BaseEntity_Template, 'wb')
@@ -130,27 +132,27 @@ class Generator:
             f.close()
             # Generate
             template = self.templateEnv.get_template(Generator.IController_Template)
-            print("> Generating IController .")
+            Helper.logger.debug("> Generating IController .")
             output = template.render(package=self.__project.package + "." +Project.Controllers_folder).encode("utf-8")
             f = open(controllersDirs + '/IController.java', 'wb')
             f.write(output)
             f.close()
             # Generate
             template = self.templateEnv.get_template(Generator.IService_Template)
-            print("> Generating IService .")
+            Helper.logger.debug("> Generating IService .")
             packageService = self.__project.package + "." + Project.Services_folder
             output = template.render(package=self.__project.package + "." +Project.Services_folder).encode("utf-8")
             f = open(servicesDirs + '/IService.java', 'wb')
             f.write(output)
             f.close()
-            print("> Generating error Controller file ..")
+            Helper.logger.debug("> Generating error Controller file ..")
             template = self.templateEnv.get_template(Generator.ErrorControl_Template)
             output = template.render(package=self.__project.package + "." + Project.Controllers_folder,
                                      project=self.__project).encode("utf-8")
             f = open(controllersDirs + '/' + Generator.ErrorControl_Template, 'wb')
             f.write(output)
             f.close()
-            print("> Generating Status Controller file ..")
+            Helper.logger.debug("> Generating Status Controller file ..")
             template = self.templateEnv.get_template(Generator.StatusControl_Template)
             output = template.render(package=self.__project.package + "." + Project.Controllers_folder).encode("utf-8")
             f = open(controllersDirs + '/' + Generator.StatusControl_Template, 'wb')
@@ -163,7 +165,7 @@ class Generator:
         self.configuration=conf
         # Generate xml logging configuration
         template = self.templateEnv.get_template(Generator.log4j2_Template)
-        print("> Generating Configuration logger ..")
+        Helper.logger.debug("> Generating Configuration logger ..")
         # Generate
         output = template.render(logger=self.configuration).encode("utf-8")
         f = open(self.outputDir + Project.Resources_Dir + Generator.log4j2_Template, 'wb')
@@ -171,7 +173,7 @@ class Generator:
         f.close()
         # Generate configurations file
         template = self.templateEnv.get_template(Generator.properties_Template)
-        print("> Generating Configurations file ..")
+        Helper.logger.debug("> Generating Configurations file ..")
         # Generate
         output = template.render(project=self.__project,
                                  dbProd=self.configuration.databaseProd,
@@ -183,42 +185,42 @@ class Generator:
         f.close()
         # Generate pom configuration
         template = self.templateEnv.get_template(Generator.pom_Template)
-        print("> Generating Configuration pom ..")
+        Helper.logger.debug("> Generating Configuration pom ..")
         # Generate
         output = template.render(pom=self.__project).encode("utf-8")
         f = open(self.outputDir + '/' + Generator.pom_Template, 'wb')
         f.write(output)
         f.close()
         # Generate some java files
-        print("> Generating application  files ..")
+        Helper.logger.debug("> Generating application  files ..")
         template = self.templateEnv.get_template(Generator.application_Template)
         output = template.render(package=self.__project.package).encode("utf-8")
         f = open(self.__srcdir  + '/' + Generator.application_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
-        print("> Generating Swagger Config files ..")
+        Helper.logger.debug("> Generating Swagger Config files ..")
         template = self.templateEnv.get_template(Generator.SwaggerConfig_Template)
         output = template.render(ApiPrefix=Project.ApiPrefix, project=self.__project).encode("utf-8")
         f = open(self.__srcdir + '/' + Generator.SwaggerConfig_Template, 'wb')
         f.write(output)
         f.close()
     	# Generate
-        print("> Generating Logging Filter files ..")
+        Helper.logger.debug("> Generating Logging Filter files ..")
         template = self.templateEnv.get_template(Generator.logginFilter_Template)
         output = template.render(package=self.__project.package).encode("utf-8")
         f = open(self.__srcdir + '/' + Generator.logginFilter_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
-        print("> Generating Web Initializer files ..")
+        Helper.logger.debug("> Generating Web Initializer files ..")
         template = self.templateEnv.get_template(Generator.webInitializer_Template)
         output = template.render(package=self.__project.package).encode("utf-8")
         f = open(self.__srcdir + '/' + Generator.webInitializer_Template, 'wb')
         f.write(output)
         f.close()
         # Generate Exceptions files
-        print("> Generating Web Exceptions files ..")
+        Helper.logger.debug("> Generating Web Exceptions files ..")
         template = self.templateEnv.get_template(Generator.ExceptionBad_Template)
         output = template.render(package=self.__project.package + "." + Project.Exceptions_folder).encode("utf-8")
         f = open(exceptionDirs + '/' + Generator.ExceptionBad_Template, 'wb')
@@ -230,7 +232,7 @@ class Generator:
         f.write(output)
         f.close()
         # Generate
-        print("> Generating Read ME File .")
+        Helper.logger.debug("> Generating Read ME File .")
         template = self.templateEnv.get_template(Generator.READMEFILE_Template)
         output = template.render(project=self.__project).encode("utf-8")
         f = open(self.outputDir + '/' + Generator.READMEFILE_Template, 'wb')
@@ -255,24 +257,24 @@ def main(argv):
     parser.add_argument('-o', '--outputDir', dest='outputDir', action='store',default=DefaultOutput_Dir,
                         help='The Output folder where to store generated source code', )
     args = parser.parse_args()
-    print("[  ok ] verbose     : '{}'     ".format(args.verbose))
-    print("[  ok ] configfile  : '{}'   ".format(args.configfile))
-    print("[  ok ] outputDir   : '{}'     ".format(args.outputDir))
+    Helper.logger.info("[  ok ] verbose     : '{}'     ".format(args.verbose))
+    Helper.logger.info("[  ok ] configfile  : '{}'   ".format(args.configfile))
+    Helper.logger.info("[  ok ] outputDir   : '{}'     ".format(args.outputDir))
     # Load configuration
     econ = ConfigLoader(args.configfile, args.verbose)
     if args.verbose:
         pp = pprint.PrettyPrinter(indent=4)
-        print("The config Project is ==>   ")
+        Helper.logger.info("The config Project is ==>   ")
         pp.pprint(econ.configuration['project'])
     # Analyse Configuration
-    print("Analysing Configuration ..   ")
+    Helper.logger.info("Analysing Configuration ..   ")
     analyser = Analyser(econ.project, econ.configuration)
     # Generate ...
-    print("Generate ..   ")
+    Helper.logger.info("Generate ..   ")
     gen = Generator(args.outputDir, args.verbose, econ.project)
-    print("Generate   ==>   ")
+    Helper.logger.info("Generate   ==>   ")
     gen.Generate(analyser.AllEntities)
-    print("Generate configurations ==>   ")
+    Helper.logger.info("Generate configurations ==>   ")
     gen.GenerateConfiguration(analyser.Configuration)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
