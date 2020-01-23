@@ -7,3 +7,4 @@
 .factorypath
 templates/.classpath
 templates/.settings/*
+node_modules/
