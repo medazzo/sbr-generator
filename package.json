@@ -1,10 +1,11 @@
 {
   "name": "sbr-generator",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Spring Boot Rest Generator is a  python Library used to generate source code modules starting from config files . The Generated source code is a CRUD Rest Spring Boot Server.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "buildTemplates": "./generateTemplateFile.sh",
+    "test": "npm run buildTemplates && python easinGenerator.py  -c examples/config.yaml"
   },
   "repository": {
     "type": "git",
@@ -20,7 +21,7 @@
     "spring-security",
     "configuration"
   ],
-  "author": "Mohamed Azzouni",
+  "author": "Mohamed Azzouni <mohamed.azzouni@gmail.com>",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/medazzo/sbr-generator/issues"

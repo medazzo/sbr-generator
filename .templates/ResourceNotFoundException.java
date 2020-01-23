@@ -1,10 +1,3 @@
-/*   Copyright (C) 2019 EASYSOFT-IN                                 */
-/*   All rights exclusively reserved for EASYSOFT-IN,               */
-/*   unless otherwise expressly agreed.                             */
-/*                                                                  */
-/*   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *    */
-/*   This is a Generated source code file                           */
-/*   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *    */
 package {{package}};
 
 import lombok.Getter;
