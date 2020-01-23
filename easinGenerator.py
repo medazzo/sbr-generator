@@ -250,7 +250,8 @@ class Generator:
 def main(argv):
     # Check Parameter
     parser = argparse.ArgumentParser(
-        description='Easin generator: Generate source code..')
+        prog='SBR Generator',
+        description='SBR generator: Generate Spring Boot Rest source code.')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Enable verbose traces')
     parser.add_argument('-c', '--config', dest='configfile', action='store',
                         help='The Yaml config file ', required=True)
