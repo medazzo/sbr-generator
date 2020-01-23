@@ -1,10 +1,3 @@
-/*   Copyright (C) 2019 EASYSOFT-IN                                 */
-/*   All rights exclusively reserved for EASYSOFT-IN,               */
-/*   unless otherwise expressly agreed.                             */
-/*                                                                  */
-/*   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *    */
-/*   This is a Generated source code file                           */
-/*   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *    */
 package {{package}};
 
 import org.springframework.context.annotation.Bean;
@@ -24,8 +17,8 @@ public class RequestLoggingFilterConfig {
         filter.setIncludePayload(true);
         filter.setMaxPayloadLength(MAX_PAYLOAD_LOG_BUFFER_LENGTH);
         filter.setIncludeHeaders(false);
-        filter.setAfterMessageSuffix("\n ============== DONE =============== ");
-        filter.setBeforeMessagePrefix(" =========== STARTING  =========== \n");
+        filter.setAfterMessageSuffix(" ============== DONE =============== ");
+        filter.setBeforeMessagePrefix(" =========== STARTING  =========== ");
         return filter;
     }
 }
