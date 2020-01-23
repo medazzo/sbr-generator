@@ -10,6 +10,16 @@
     "type": "git",
     "url": "git+https://github.com/medazzo/sbr-generator.git"
   },
+  "keywords": [
+    "spring-boot",
+    "rest-api",
+    "generator",
+    "swagger",
+    "swagger-ui",
+    "swagger2",
+    "spring-security",
+    "configuration"
+  ],
   "author": "Mohamed Azzouni",
   "license": "Apache-2.0",
   "bugs": {
