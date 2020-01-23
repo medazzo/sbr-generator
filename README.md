@@ -5,18 +5,37 @@
 Spring Boot Rest Generator is a  python Library used to generate source code modules starting from config files .
 The Generated source code is a CRUD Rest Spring Boot Server.  
 
-# Tool
-## Prerequisites
-To use PyGenerator  make sur to install python, pyyaml, jinja2 and lxml python librarys:
+## How to install 
+It's a node binary , can be installed by 
+```
+npm install -g sbr-generator
+```
+### Prerequisites
+To work correctly nsbr need some python modules to be installed :   
 ```
 pip install jinja2
 pip install pyyaml
 pip install coloredlogs
 ```
-## Generate
-Run example using embedded yaml configuration 
+## How To use 
+sbr need a config file , you can use the example one    
 ```
-python  easinGenerator.py  -c config.yaml
+~$ sbrgen  -h 
+usage: SBR Generator [-h] [-v] -c CONFIGFILE [-o OUTPUTDIR]
+
+SBR generator: Generate Spring Boot Rest source code.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         Enable verbose traces
+  -c CONFIGFILE, --config CONFIGFILE
+                        The Yaml config file
+  -o OUTPUTDIR, --outputDir OUTPUTDIR
+                        The Output folder where to store generated source code
+
+~$ cd examples 
+~$ sbrgen  -h  -c config.yaml
+...
 ```
 This will generate the next folder :
 ```
@@ -69,28 +88,16 @@ serverTest-0.0.1-SNAP/
 12 directories, 31 files
 ```
 
-## Run
+## How to use Generated source code 
 
-To build and Run server
+The generated source code is a spring boot rest maven project wit ha read me file , ready to use : 
+To build and Run server :
 ```
 cd testServer-0.0.1/
 mvn clean package
-mvn  help:active-profiles
 mvn spring-boot:run
 
 ```
-
-## Next steps
-### generate tests
-Python will be generated  under src/test/python based on templates of Enity.py and Crud.py from esserver and exec maven plugin to run it 
-like described in :
-https://blog.berczuk.com/2009/12/continuous-integration-of-python-code.html
-and  https://www.mojohaus.org/exec-maven-plugin/usage.html
-### Security layer
-security will be based on role and user's token as done in esserver 
-### mail 
-to do later , very later et maibe not needed 
-
 # Configuration File
 
 The Configuration is a yaml file having multiple.
@@ -174,4 +181,16 @@ entities:
 ```
 
 ## How it's Works
-Starting from defined entity's , entity's , controller's ,repository's will be generated 
+Starting from defined entity's , entity's , controller's ,repository's will be generated
+
+# Next steps
+## generate tests
+Python will be generated  under src/test/python based on templates of Enity.py and Crud.py from esserver and exec maven plugin to run it 
+like described in :
+https://blog.berczuk.com/2009/12/continuous-integration-of-python-code.html
+and  https://www.mojohaus.org/exec-maven-plugin/usage.html
+## Security layer
+security will be based on role and user's token as done in esserver 
+## mail 
+to do later , very later et maibe not needed 
+ 
