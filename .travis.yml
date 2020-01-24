@@ -16,6 +16,8 @@ matrix:
         - pytest
     - language: node_js
       script:
+        - pip install -r requirements.txt
+        - pytest
         - npm install
         - npm run buildTemplates
         - npm run test
