@@ -34,7 +34,7 @@ pycryptodome==3.9.0
 pydot==1.0.29
 pydot-ng==1.0.0
 pygobject==3.20.0
-pyOpenSSL==0.15.1
+pyOpenSSL==17.5.0
 pyparsing==2.0.3
 pyserial==3.4
 PyYAML==5.1.2
