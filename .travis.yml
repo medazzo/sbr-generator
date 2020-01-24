@@ -12,9 +12,7 @@ matrix:
         - "nightly"  # nightly build
       # command to install dependencies
       install:
-        - pip install jinja
-        - pip install pyyaml
-        - pip install coloredlogs
+        - pip install -r requirements.txt
       # command to run tests
       script:
         - pytest
