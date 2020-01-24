@@ -10,14 +10,12 @@ matrix:
         - "3.8"
         - "3.8-dev"  # 3.8 development branch
         - "nightly"  # nightly build
-      # command to install dependencies
       install:
         - pip install -r requirements.txt
-      # command to run tests
       script:
         - pytest
     - language: node_js
       script:
         - npm install
-        - npm buildTemplates
-        - npm test
+        - npm run buildTemplates
+        - npm run test
