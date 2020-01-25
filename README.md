@@ -1,9 +1,10 @@
 
+# About this repository [![Build Status](https://travis-ci.org/medazzo/sbr-generator.svg?branch=master)](https://travis-ci.org/medazzo/sbr-generator)
 
 # SBR-Generator
 
-Spring Boot Rest Generator is a  python Library used to generate source code modules starting from config files .
-The Generated source code is a CRUD Rest Spring Boot Server.  
+SBR generator is a Spring Boot Rest Generator npm binary cli used to generate source code modules starting from config file .
+The Generated source code is a CRUD Rest Spring Boot Server, ready to build and run .  
 
 ## How to install 
 It's a node binary , can be installed by 
