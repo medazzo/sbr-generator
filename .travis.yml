@@ -11,3 +11,7 @@ script:
     - npm install
     - npm run buildTemplates
     - npm run test
+    - cd serverTest-0.0.1-SNAP/
+    - ls -alh 
+    - mvn package
+    - mvn install
