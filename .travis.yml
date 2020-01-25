@@ -9,9 +9,8 @@ matrix:
       script:
         - python easinGenerator.py  -c examples/config.yaml
     - language: node_js
-      python:
-        - "2.7"
-        - "3.6"      # current default Python on Travis CI
+      python:        
+        - "3.6"  
       install:
         - pip install -r requirements.txt
       script:
