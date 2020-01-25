@@ -1,19 +1,13 @@
-matrix:
-  include:
-    - language: python
-      python:
-        - "2.7"
-        - "3.6"      # current default Python on Travis CI
-      install:
-        - pip install -r requirements.txt
-      script:
-        - python easinGenerator.py  -c examples/config.yaml
-    - language: node_js
-      sudo: true
-      install:
-        - pip install -r requirements.txt
-      script:
-        - python easinGenerator.py  -c examples/config.yaml
-        - npm install
-        - npm run buildTemplates
-        - npm run test
+language: python
+python:
+  - "2.7"
+  - "3.5"
+install:
+  - pip install -r requirements.txt
+virtualenv:
+  system_site_packages: true
+script:
+    - python easinGenerator.py  -c examples/config.yaml
+    - npm install
+    - npm run buildTemplates
+    - npm run test
