@@ -35,7 +35,7 @@ optional arguments:
                         The Output folder where to store generated source code
 
 ~$ cd examples 
-~$ sbrgen  -h  -c config.yaml
+~$ sbrgen  -v  -c config.yaml
 ...
 ```
 This will generate the next folder :
@@ -185,13 +185,14 @@ entities:
 Starting from defined entity's , entity's , controller's ,repository's will be generated
 
 # Next steps
+
 ## generate tests
-Python will be generated  under src/test/python based on templates of Enity.py and Crud.py from esserver and exec maven plugin to run it 
-like described in :
-https://blog.berczuk.com/2009/12/continuous-integration-of-python-code.html
-and  https://www.mojohaus.org/exec-maven-plugin/usage.html
+
+Tests will be generated under src/test/ based on tests templates .
+
 ## Security layer
-security will be based on role and user's token as done in esserver 
+
+  security will be based on role and user's token with spring-security
+
 ## mail 
-to do later , very later et maibe not needed 
- 
+  to do later ..
