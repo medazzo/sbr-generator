@@ -543,10 +543,11 @@ public class {{entityName}}CrudUnitTest {
     }
     private {{entityName}} Update({{entityName}} old) {        
         {% for field in entity.fields | sort(attribute='name') %}{% if ('int' == field.type) or ('Integer' == field.type) %}
-        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomInteger());  {% elif 'String' == field.type %}
-        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomString(30)); {% elif 'double' == field.type %}
-        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomdouble());   {% else %}                        
-        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomString(30));        // TODO Field {{field.name}} is not updated: type '{{field.type}}' not managed yet !!                 
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomInteger(50));  {% elif 'double' == field.type %}
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomdouble()); {% elif 'String' == field.type %}        
+        {% if '@Email' in field.annotations  %}old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomMail());{% else %}
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));{% endif %} {% else %}                        
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));         // TODO Field {{field.name}} is not updated: type '{{field.type}}' not managed yet !!                 
         {% endif %}{% endfor %}          
         return old;
     }
@@ -601,8 +602,8 @@ public class HelperTests {
     private static final String DATA_FOR_RANDOM_STRING = CHAR_LOWER + CHAR_UPPER + NUMBER;
     private static SecureRandom random = new SecureRandom();
 
-    public static int randomInteger() {
-        return  random.nextInt();        
+    public static int randomInteger(int bound) {
+        return  random.nextInt(bound);        
     }
     
     public static double randomdouble() {        
@@ -622,6 +623,10 @@ public class HelperTests {
         }
 
         return sb.toString();
+
+    }
+    public static String randomMail() {
+        return randomString(10)+"@"+randomString(7)+".com";
 
     }
  
@@ -752,7 +757,7 @@ public class MyErrorController implements ErrorController {
     <groupId>{{pom.package}}</groupId>
     <artifactId>{{pom.name}}</artifactId>
     <version>{{pom.version}}</version>
-    <name>{{pom.longName}}</name>
+    <name>{{pom.longname}}</name>
     <description>{{pom.description}}</description>
     <url>{{pom.url}}</url>
     <packaging>war</packaging>

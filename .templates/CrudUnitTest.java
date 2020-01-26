@@ -280,10 +280,11 @@ public class {{entityName}}CrudUnitTest {
     }
     private {{entityName}} Update({{entityName}} old) {        
         {% for field in entity.fields | sort(attribute='name') %}{% if ('int' == field.type) or ('Integer' == field.type) %}
-        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomInteger());  {% elif 'String' == field.type %}
-        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomString(30)); {% elif 'double' == field.type %}
-        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomdouble());   {% else %}                        
-        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomString(30));        // TODO Field {{field.name}} is not updated: type '{{field.type}}' not managed yet !!                 
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomInteger(50));  {% elif 'double' == field.type %}
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomdouble()); {% elif 'String' == field.type %}        
+        {% if '@Email' in field.annotations  %}old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomMail());{% else %}
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));{% endif %} {% else %}                        
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));         // TODO Field {{field.name}} is not updated: type '{{field.type}}' not managed yet !!                 
         {% endif %}{% endfor %}          
         return old;
     }
