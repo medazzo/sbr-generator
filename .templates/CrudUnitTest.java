@@ -45,14 +45,20 @@ public class {{entityName}}CrudUnitTest {
 
     @Test
     public void {{entityName}}CreateTest() throws Exception {
+        // check Get all is empty     
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
         {{entityName}} created = CreateAndSave();
         // Remove the Created {{entityName}}
         RemoveOne(created.getId());
+        // check Get all is empty     
+        CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}ReadTest() throws Exception {
+        // check Get all is 0
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
         {{entityName}} saved = CreateAndSave();
         // Get {{entityName}} using API and verify returned One
@@ -63,6 +69,7 @@ public class {{entityName}}CrudUnitTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("id").value(saved.getId()))
                 {% for field in entity.fields | sort(attribute='name') %} .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {% endfor %}
                 .andReturn();
@@ -71,25 +78,18 @@ public class {{entityName}}CrudUnitTest {
         {{entityName}} getted = mapper.readValue(mvcgResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(getted.getId());
         assertEquals(found.getId(), getted.getId());
-
         {% for field in entity.fields | sort(attribute='name') %}  assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {% endfor %}
-
         // Remove the Created {{entityName}}
         RemoveOne(found.getId());
+        // check Get all is 0
+        CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}ReadAllTest() throws Exception {
         // Get all          
-        mockMvc.perform(
-                get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
         {{entityName}} saved = CreateAndSave();
         // Get All
@@ -124,19 +124,14 @@ public class {{entityName}}CrudUnitTest {
         RemoveOne(saved.getId());
         // Remove the Created {{entityName}}
         RemoveOne(saved2.getId());
+        // check Get all is empty     
+        CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}UpdateTest() throws Exception {
         // Get all          
-        mockMvc.perform(
-                get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
         {{entityName}} saved = CreateAndSave();
         // Get All
@@ -162,6 +157,7 @@ public class {{entityName}}CrudUnitTest {
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("id").value(updt.getId()))
                 {% for field in entity.fields | sort(attribute='name') %} .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(updt.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {% endfor %}
                 .andReturn();
@@ -170,21 +166,18 @@ public class {{entityName}}CrudUnitTest {
         {{entityName}} getted = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(getted.getId());
         assertEquals(found.getId(), getted.getId());
-        {% for field in entity.fields | sort(attribute='name') %}  assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
+        {% for field in entity.fields | sort(attribute='name') %}assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {% endfor %}
+         // Remove the Created {{entityName}}
+         RemoveOne(getted.getId());
+        // check Get all is empty     
+        CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}DeleteTest() throws Exception {
-        // Get all          
-        mockMvc.perform(
-                get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+        // check Get all is 0
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
         {{entityName}} saved = CreateAndSave();
         // Get All
@@ -231,15 +224,8 @@ public class {{entityName}}CrudUnitTest {
                 .andReturn();
         // Remove  last one 
         RemoveOne(saved2.getId());        
-        // Get all          
-        mockMvc.perform(
-                get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+        // check Get all is empty     
+        CheckAllEmpty();
     }
 
     public {{entityName}} CreateAndSave() throws IOException, Exception {
@@ -253,18 +239,18 @@ public class {{entityName}}CrudUnitTest {
         )
                 .andExpect(status().isCreated())
                 .andDo(print())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))Adde
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("id").isNotEmpty())
                 {% for field in entity.fields | sort(attribute='name') %} .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(ent.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {% endfor %}
                 .andReturn();
         // Verify Created {{entityName}} using Service
         ObjectMapper mapper = new ObjectMapper();
         {{entityName}} saved = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(saved.getId());
         assertEquals(found.getId(), saved.getId());
-        {% for field in entity.fields | sort(attribute='name') %}  assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
-        {% endfor %}
-        // return 
+        {% for field in entity.fields | sort(attribute='name') %}  assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), saved.get{{field.name[0]|upper}}{{field.name[1:]}}());        
+        {% endfor %}// return         
         return saved;
     }
 
@@ -281,16 +267,23 @@ public class {{entityName}}CrudUnitTest {
         {{entityName}} ent = new {{entityName}}();
         return Update(ent);
     }
-
+    private void CheckAllEmpty()  throws  Exception{
+        // check Get all is 0
+        mockMvc.perform(
+                get("{{mapping}}/all")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+    }
     private {{entityName}} Update({{entityName}} old) {        
-        {% for field in entity.fields | sort(attribute='name') %}{% if 'int' == field.type %}
-                old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomInteger());        
-                {% elif 'String' == field.type %}
-                old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomString(30));        
-                {% elif 'double' == field.type %}
-                old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomdouble());        
-                {% else %}                        
-                old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomString(30));        // TODO Field field.name is not updated !!                 
+        {% for field in entity.fields | sort(attribute='name') %}{% if ('int' == field.type) or ('Integer' == field.type) %}
+        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomInteger());  {% elif 'String' == field.type %}
+        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomString(30)); {% elif 'double' == field.type %}
+        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomdouble());   {% else %}                        
+        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomString(30));        // TODO Field {{field.name}} is not updated: type '{{field.type}}' not managed yet !!                 
         {% endif %}{% endfor %}          
         return old;
     }
