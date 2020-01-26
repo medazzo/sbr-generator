@@ -11,8 +11,8 @@ public class HelperTests {
     private static final String DATA_FOR_RANDOM_STRING = CHAR_LOWER + CHAR_UPPER + NUMBER;
     private static SecureRandom random = new SecureRandom();
 
-    public static int randomInteger() {
-        return  random.nextInt();        
+    public static int randomInteger(int bound) {
+        return  random.nextInt(bound);        
     }
     
     public static double randomdouble() {        
@@ -32,6 +32,10 @@ public class HelperTests {
         }
 
         return sb.toString();
+
+    }
+    public static String randomMail() {
+        return randomString(10)+"@"+randomString(7)+".com";
 
     }
  

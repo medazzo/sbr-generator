@@ -13,7 +13,7 @@
     <groupId>{{pom.package}}</groupId>
     <artifactId>{{pom.name}}</artifactId>
     <version>{{pom.version}}</version>
-    <name>{{pom.longName}}</name>
+    <name>{{pom.longname}}</name>
     <description>{{pom.description}}</description>
     <url>{{pom.url}}</url>
     <packaging>war</packaging>
