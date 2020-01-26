@@ -182,9 +182,10 @@ entities:
 ```
 
 ## How it's Works
-Starting from defined entity's , entity's , controller's ,repository's will be generated
 
-# Next steps
+Starting from defined entity's , entity's , controller's ,repository's will be generated.
+
+# Next steps
 
 ## generate tests
 
