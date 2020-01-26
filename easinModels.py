@@ -33,7 +33,7 @@ class Helper:
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Project:
     """ A Project definition class"""
-    Service_prepend         = "Service"
+    Service_prepend         = "Service"    
     Controller_prepend      = "Controller"
     Repository_prepend      = "Repository"
 
@@ -46,6 +46,7 @@ class Project:
     ApiPrefix                = "/api/"
 
     JAVA_Dir                = "/src/main/java/"
+    Test_Dir                = "/src/test/java/"
     Resources_Dir           = "/src/main/resources/"
     def __init__(self, name=None, package=None, version=None, longname=None, description=None, url=None, restPath=None):
         self.name = name

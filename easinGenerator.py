@@ -41,6 +41,8 @@ class Generator:
     ErrorControl_Template   = "MyErrorController.java"
     StatusControl_Template  = "StatusController.java"
     READMEFILE_Template     = "README.md"
+    CrudTest_Template       = "CrudUnitTest.java"
+    HelperTests_Template    = "HelperTests.java"
 
     Template_Dir            = "templates"
     def __init__(self, outputDir=None, verbose=False, project = None):
@@ -66,26 +68,31 @@ class Generator:
         os.makedirs(self.outputDir + Project.JAVA_Dir)
         self.__srcdir = self.outputDir + Project.JAVA_Dir + self.__project.package.replace(".", "/")
         os.makedirs(self.outputDir + Project.Resources_Dir)
+        self.__testdir = self.outputDir + Project.Test_Dir + self.__project.package.replace(".", "/")        
+        os.makedirs(self.__testdir)
         #  prepare template loader
         self.__pathTemplate = os.getcwd() + "/" + Generator.Template_Dir
         loader = jinja2.FileSystemLoader(searchpath=self.__pathTemplate)
         self.templateEnv = jinja2.Environment(loader=loader)
 
     def Generate(self,entities=list()):
-        # Creating dir's for entities , repositories, controllers, services
+        # Setup some params
         self.entities = entities
+        # Preparing templates
         templateEntity = Environment(loader=BaseLoader()).from_string(templates[Generator.Entity_Template])
-        entityDirs = self.__srcdir + '/' + Project.Entities_folder
-        os.makedirs(entityDirs)
         templateRepo = Environment(loader=BaseLoader()).from_string(templates[Generator.EntityRepo_Template])
-        entityRepoDirs = self.__srcdir + '/' + Project.Repositories_folder
-        os.makedirs(entityRepoDirs)
         templateController = Environment(loader=BaseLoader()).from_string(templates[Generator.Controller_Template])
-        controllersDirs = self.__srcdir + '/' + Project.Controllers_folder
-        os.makedirs(controllersDirs)
         templateService = Environment(loader=BaseLoader()).from_string(templates[Generator.Service_Template])
+        # Creating dir's for entities , repositories, controllers, services
+        entityDirs = self.__srcdir + '/' + Project.Entities_folder
+        os.makedirs(entityDirs)        
+        entityRepoDirs = self.__srcdir + '/' + Project.Repositories_folder
+        os.makedirs(entityRepoDirs)        
+        controllersDirs = self.__srcdir + '/' + Project.Controllers_folder
+        os.makedirs(controllersDirs)        
         servicesDirs = self.__srcdir + '/' + Project.Services_folder
-        os.makedirs(servicesDirs)
+        os.makedirs(servicesDirs)        
+        #loop in entities
         for ent in self.entities:
             Helper.logger.debug("> Generating Class for Entity {} .".format(ent.name))
             # Generate
@@ -124,6 +131,17 @@ class Generator:
             f = open(servicesDirs + '/' + ent.name + Project.Service_prepend+'.java', 'wb')
             f.write(output)
             f.close()
+            # Generate
+            Helper.logger.debug("> Generating Crud tests file for Entity {} .".format(ent.name))
+            template = Environment(loader=BaseLoader()).from_string(templates[Generator.CrudTest_Template])
+            output = template.render(   package=self.__project.package ,
+                                        Entitypackage=self.__project.package+"."+Project.Entities_folder+"."+ent.name,
+                                        Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name+Project.Service_prepend,
+                                        entityName=ent.name,
+                                        entity=ent).encode("utf-8")
+            f = open(self.__testdir + '/' + ent.name + Generator.CrudTest_Template, 'wb')
+            f.write(output)
+            f.close()
         if len(self.entities) > 0:
             # Generate
             Helper.logger.debug("> Generating Base entity file ..")
@@ -147,6 +165,7 @@ class Generator:
             f = open(servicesDirs + '/IService.java', 'wb')
             f.write(output)
             f.close()
+            # Generate
             Helper.logger.debug("> Generating error Controller file ..")
             template = Environment(loader=BaseLoader()).from_string(templates[Generator.ErrorControl_Template])
             output = template.render(package=self.__project.package + "." + Project.Controllers_folder,
@@ -154,12 +173,20 @@ class Generator:
             f = open(controllersDirs + '/' + Generator.ErrorControl_Template, 'wb')
             f.write(output)
             f.close()
+            # Generate
             Helper.logger.debug("> Generating Status Controller file ..")
             template = Environment(loader=BaseLoader()).from_string(templates[Generator.StatusControl_Template])
             output = template.render(package=self.__project.package + "." + Project.Controllers_folder).encode("utf-8")
             f = open(controllersDirs + '/' + Generator.StatusControl_Template, 'wb')
             f.write(output)
             f.close()
+            # Generate
+            Helper.logger.debug("> Generating Helper test file ..")
+            template = Environment(loader=BaseLoader()).from_string(templates[Generator.HelperTests_Template])
+            output = template.render(package=self.__project.package).encode("utf-8")
+            f = open(self.__testdir + '/' + Generator.HelperTests_Template, 'wb')
+            f.write(output)
+            f.close()           
 
     def GenerateConfiguration(self,conf=None):
         exceptionDirs = self.__srcdir + '/' + Project.Exceptions_folder
