@@ -102,6 +102,7 @@ class Configuration():
     """ A Configuration definition class"""
     def __init__(self, project=None, config=None):
         self.project = project
+        self.name=project.name
         self.RootLoggerLevel = config['logging']['RootLoggerLevel']
         self.Loggers = list()
         for fi in config['logging']['Loggers']:
@@ -146,7 +147,6 @@ class Entity():
             for ent in othersEntitys:
                 if ent.name == field.type :
                     Helper.logger.warn("> > Entity {} , Field {} is having relation with Entity {} .. Updating ..".format(self.name ,field.name, field.type))
-                    field.type = "String"
                     field.foreignKey= True
                     field.foreignEntity= ent.name
 

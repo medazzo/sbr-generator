@@ -87,12 +87,10 @@ entities:
   - name: Company        
     comment: Class representing the company parameters
     fields:
-      - name: user
-        comment: User created
+      - name: owner
+        comment: User Owner  of the comapny
         annotations:
-          - '@JoinColumn(name="user_id", insertable=false, updatable=false)'
-          - "@ManyToOne(targetEntity = User.class, fetch = FetchType.EAGER)"          
-          - "@ToString.Exclude"
+          - "@ManyToOne"          
         type: User      
       - name: mail
         type: String
@@ -108,7 +106,7 @@ entities:
         comment: tva Rate of the Company
         annotations:
           - "@Column(nullable = false)"
-          - '@Min(value = 1L, message = "The value must be positive")'
+          - '@Min(value = 0L, message = "The value must be positive")'
           - '@Max(value = 50L, message = "The value must lesser than 50")'
       - name: tvaCode
         type: String
@@ -117,14 +115,6 @@ entities:
           - "@Column(nullable = false)"
       - name: name
         comment: name of the Company
-        annotations:
-          - "@Column(nullable = false)"
-        type: String
-  - name: Legal    
-    comment: Class representing the Legal parameters
-    fields:
-      - name: legalStatus
-        comment: Legal status of the company SAS , SARL
         annotations:
           - "@Column(nullable = false)"
         type: String

@@ -57,12 +57,17 @@ GRANT
 To compile
 
 ```
- mvn clean package
+ mvn clean package -Dmaven.test.skip=true
 ```
 To run
 
 ```
-mvn spring-boot:run
+mvn spring-boot:run  -Dmaven.test.skip=true
+```
+To Run already generated  CRUD  unt Tests
+
+```
+mvn surefire:test
 ```
 
 ## Swagger docs 

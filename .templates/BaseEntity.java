@@ -26,15 +26,9 @@ import io.swagger.annotations.ApiModelProperty;
 @JsonIgnoreProperties(value = {"createdAt", "updatedAt"}, allowGetters = true)
 public abstract class BaseEntity implements Serializable {
 
-    @Id
-    @GeneratedValue(generator = "system-uuid", strategy = GenerationType.IDENTITY)
-    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
-    @ApiModelProperty(hidden = true)
-    protected String Id;
-
     @Version
     @ApiModelProperty(hidden = true)
-    private Integer version;
+    private Integer version = 1;
 
     @Column(nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
