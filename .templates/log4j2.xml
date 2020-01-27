@@ -11,7 +11,7 @@
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <PatternLayout pattern="${LOG_PATTERN_2}"/>
         </Console>{% endraw %}
         <RollingFile name="RollingFile"
                      fileName="/usr/share/tomcat/{{logger.projectName}}/logs/{{logger.projectName}}-logger-log4j2.log"

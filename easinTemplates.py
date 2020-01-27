@@ -264,12 +264,24 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     'CrudUnitTest.java' :  """package {{package}};
 
 import {{Entitypackage}};
+import {{EntityBasepackage}}.BaseEntity;
 import {{Servicepackage}};
+import {{ServiceBasepackage}}.IService;
 
+{%- for field in entity.fields | sort(attribute='name') %}
+{%- if field.foreignKey  %}
+import {{EntityBasepackage}}.{{field.foreignEntity}};        
+import {{ServiceBasepackage}}.{{field.foreignEntity}}Service;        
+{%- endif %}
+{%- endfor %}     
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.After;
+import org.junit.Before;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -302,28 +314,34 @@ public class {{entityName}}CrudUnitTest {
 
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private {{entityName}}Service service;
+{%- for field in entity.fields | sort(attribute='name') %}
+{%- if field.foreignKey  %}
+    @Autowired
+    private {{field.foreignEntity}}Service fk{{field.foreignEntity}}service;
+{%- endif %}
+{%- endfor %}     
+    Map<String, BaseEntity> hm = new HashMap<>();
 
     @Test
     public void {{entityName}}CreateTest() throws Exception {
         // check Get all is empty     
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
-        {{entityName}} created = CreateAndSave();
+        {{entityName}} created = CreateAndSave(mockMvc, service, hm);
         // Remove the Created {{entityName}}
-        RemoveOne(created.getId());
+        RemoveOne(mockMvc, created.getId());
         // check Get all is empty     
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
     }
 
     @Test
     public void {{entityName}}ReadTest() throws Exception {
         // check Get all is 0
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave();
+        {{entityName}} saved = CreateAndSave(mockMvc, service, hm);
         // Get {{entityName}} using API and verify returned One
         MvcResult mvcgResult = mockMvc.perform(
                 get("{{mapping}}/{id}", saved.getId())
@@ -344,17 +362,17 @@ public class {{entityName}}CrudUnitTest {
         {% for field in entity.fields | sort(attribute='name') %}  assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {% endfor %}
         // Remove the Created {{entityName}}
-        RemoveOne(found.getId());
+        RemoveOne(mockMvc, found.getId());
         // check Get all is 0
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
     }
 
     @Test
     public void {{entityName}}ReadAllTest() throws Exception {
         // Get all          
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave();
+        {{entityName}} saved = CreateAndSave(mockMvc, service, hm);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -368,7 +386,7 @@ public class {{entityName}}CrudUnitTest {
                 {% endfor %}                
                 .andReturn();
         // Create Another Test {{entityName}} Object
-        {{entityName}} saved2 = CreateAndSave();
+        {{entityName}} saved2 = CreateAndSave(mockMvc, service, hm);
         // Get all 
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -384,19 +402,19 @@ public class {{entityName}}CrudUnitTest {
                 {% endfor %}
                 .andReturn();
         // Remove the Created {{entityName}}
-        RemoveOne(saved.getId());
+        RemoveOne(mockMvc, saved.getId());
         // Remove the Created {{entityName}}
-        RemoveOne(saved2.getId());
+        RemoveOne(mockMvc, saved2.getId());
         // check Get all is empty     
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
     }
 
     @Test
     public void {{entityName}}UpdateTest() throws Exception {
         // Get all          
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave();
+        {{entityName}} saved = CreateAndSave(mockMvc, service, hm);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -410,7 +428,7 @@ public class {{entityName}}CrudUnitTest {
                 {% endfor %}
                 .andReturn();
         // Update 
-        {{entityName}} updt = Update(saved);
+        {{entityName}} updt = Update(saved, hm);
         // Get Update on Server          
         MvcResult mvcResult = mockMvc.perform(
                 put("{{mapping}}/{id}", saved.getId())
@@ -432,17 +450,17 @@ public class {{entityName}}CrudUnitTest {
         {% for field in entity.fields | sort(attribute='name') %}assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {% endfor %}
          // Remove the Created {{entityName}}
-         RemoveOne(getted.getId());
+         RemoveOne(mockMvc, getted.getId());
         // check Get all is empty     
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
     }
 
     @Test
     public void {{entityName}}DeleteTest() throws Exception {
         // check Get all is 0
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave();
+        {{entityName}} saved = CreateAndSave(mockMvc, service, hm);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -456,7 +474,7 @@ public class {{entityName}}CrudUnitTest {
                 {% endfor %}
                 .andReturn();
         // Create Another Test {{entityName}} Object
-        {{entityName}} saved2 = CreateAndSave();
+        {{entityName}} saved2 = CreateAndSave(mockMvc, service, hm);
         // Get all          
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -472,7 +490,7 @@ public class {{entityName}}CrudUnitTest {
                 {% endfor %}
                 .andReturn();
         // Remove  first one 
-        RemoveOne(saved.getId());
+        RemoveOne(mockMvc, saved.getId());
         // Get all          
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -486,16 +504,32 @@ public class {{entityName}}CrudUnitTest {
                 {% endfor %}
                 .andReturn();
         // Remove  last one 
-        RemoveOne(saved2.getId());        
+        RemoveOne(mockMvc, saved2.getId());        
         // check Get all is empty     
-        CheckAllEmpty();
+        CheckAllEmpty(mockMvc);
     }
-
-    public {{entityName}} CreateAndSave() throws IOException, Exception {
+    /**
+     * 
+     */
+    public static void CheckAllEmpty(MockMvc mock)  throws  Exception{
+        // check Get all is 0
+        mock.perform(
+                get("{{mapping}}/all")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+    }
+    /**
+    * 
+    */
+    public static {{entityName}} CreateAndSave(MockMvc mock, IService<{{entityName}}> serv,Map<String, BaseEntity> hm) throws IOException, Exception {
         // Create  {{entityName}}       
-        {{entityName}} ent = Create();
+        {{entityName}} ent = Create(hm);
         // Create {{entityName}} using API and verify returned One
-        MvcResult mvcResult = mockMvc.perform(
+        MvcResult mvcResult = mock.perform(
                 post("{{mapping}}/new")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(ent))
@@ -510,15 +544,17 @@ public class {{entityName}}CrudUnitTest {
         // Verify Created {{entityName}} using Service
         ObjectMapper mapper = new ObjectMapper();
         {{entityName}} saved = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
-        {{entityName}} found = service.getOne(saved.getId());
+        {{entityName}} found = serv.getOne(saved.getId());
         assertEquals(found.getId(), saved.getId());
         {% for field in entity.fields | sort(attribute='name') %}  assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), saved.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {% endfor %}// return         
         return saved;
     }
-
-    private void RemoveOne(String id) throws Exception{
-        mockMvc.perform(
+    /**
+     * 
+     */
+    public  static void RemoveOne(MockMvc mock,String id) throws Exception{
+        mock.perform(
                 delete("{{mapping}}/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -526,33 +562,65 @@ public class {{entityName}}CrudUnitTest {
                 .andExpect(status().isOk())
                 .andReturn();        
     }
-    private {{entityName}} Create() {
+    /**
+     * 
+     */
+    private static {{entityName}} Create(Map<String, BaseEntity> hm) throws  Exception{
         {{entityName}} ent = new {{entityName}}();
-        return Update(ent);
+        return Update(ent,hm);
     }
-    private void CheckAllEmpty()  throws  Exception{
-        // check Get all is 0
-        mockMvc.perform(
-                get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
-    }
-    private {{entityName}} Update({{entityName}} old) {        
-        {% for field in entity.fields | sort(attribute='name') %}{% if ('int' == field.type) or ('Integer' == field.type) %}
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomInteger(50));  {% elif 'double' == field.type %}
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomdouble()); {% elif 'String' == field.type %}        
-        {% if '@Email' in field.annotations  %}old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomMail());{% else %}
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));{% endif %} {% else %}                        
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));         // TODO Field {{field.name}} is not updated: type '{{field.type}}' not managed yet !!                 
-        {% endif %}{% endfor %}          
+    /**
+     * 
+     */
+    private static {{entityName}} Update({{entityName}} old, Map<String, BaseEntity> hm) throws Exception  {        
+        {%- for field in entity.fields | sort(attribute='name') %}
+                {%- if ('int' == field.type) or ('Integer' == field.type) %}
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomInteger(50));  
+                {%- elif 'double' == field.type %}
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomdouble()); 
+                {%- elif 'String' == field.type %}
+                        {%- if '@Email' in field.annotations  %}
+        old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomMail());
+                        {%- else %}
+                                {%- if field.foreignKey  %}
+        //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !        
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(hm.get("{{field.foreignEntity}}").getId());
+                                {%- else %}
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));
+                                {%- endif %}         
+                        {%- endif %} 
+                {%- else %}                        
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));  //TODO {{field.type }} Not supported type yet : easy to do!
+                {%- endif %}
+        {%- endfor %}          
         return old;
     }
+    
+    @Before
+    public void setUp() throws Exception {
+        {%- for field in entity.fields | sort(attribute='name') %}
+        {%- if field.foreignKey  %}
+        //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
+        {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}CrudUnitTest.CreateAndSave(mockMvc, fk{{field.foreignEntity}}service, hm);      
+        hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});
+        {%- endif %}
+        {%- endfor %}          
+    }
 
-    private String asJsonString(final Object obj) {
+    @After
+    public void tearDown() throws Exception {
+        {%- for field in entity.fields | sort(attribute='name') %}
+        {%- if field.foreignKey  %}
+        //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's remove it once done wuth test !        
+        {{field.foreignEntity}}CrudUnitTest.RemoveOne(mockMvc, hm.get("{{field.foreignEntity}}").getId());        
+        hm.remove("{{field.foreignEntity}}");
+        {%- endif %}
+        {%- endfor %}                  
+    }
+    /**
+     * 
+     */
+    private static String asJsonString(final Object obj) {
         try {
             return new ObjectMapper().writeValueAsString(obj);
         } catch (JsonProcessingException e) {
@@ -683,7 +751,7 @@ public interface IService<T> {
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <PatternLayout pattern="${LOG_PATTERN_2}"/>
         </Console>{% endraw %}
         <RollingFile name="RollingFile"
                      fileName="/usr/share/tomcat/{{logger.projectName}}/logs/{{logger.projectName}}-logger-log4j2.log"
@@ -1280,7 +1348,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-@RequestMapping(path = "/status")
+@RequestMapping(path = "/api/status")
 public class StatusController {
 
     @RequestMapping(value = "/version", method = RequestMethod.GET, produces = "application/json")

@@ -90,6 +90,8 @@ class Field:
             raise TypeError('annotations must be a list of strings: '+annotations+'  !.' )
         self.name = name
         self.type = type
+        self.foreignKey= False
+        self.foreignEntity= None
         self.comment = comment
         self.annotations = annotations
 
@@ -145,4 +147,6 @@ class Entity():
                 if ent.name == field.type :
                     Helper.logger.warn("> > Entity {} , Field {} is having relation with Entity {} .. Updating ..".format(self.name ,field.name, field.type))
                     field.type = "String"
+                    field.foreignKey= True
+                    field.foreignEntity= ent.name
 

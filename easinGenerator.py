@@ -137,6 +137,8 @@ class Generator:
             output = template.render(   package=self.__project.package ,
                                         Entitypackage=self.__project.package+"."+Project.Entities_folder+"."+ent.name,
                                         Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name+Project.Service_prepend,
+                                        ServiceBasepackage=self.__project.package+"."+Project.Services_folder,
+                                        EntityBasepackage=self.__project.package+"."+Project.Entities_folder,
                                         entityName=ent.name,
                                         mapping=Project.ApiPrefix+ent.name.lower(),
                                         entity=ent).encode("utf-8")
