@@ -92,13 +92,22 @@ serverTest-0.0.1-SNAP/
 ## How to use Generated source code 
 
 The generated source code is a spring boot rest maven project wit ha read me file , ready to use : 
+
 To build and Run server :
 ```
 cd testServer-0.0.1/
-mvn clean package
-mvn spring-boot:run
+mvn clean package -Dmaven.test.skip=true
+mvn spring-boot:run -Dmaven.test.skip=true
 
 ```
+
+To Run  Crud unit tests ( already generated :
+
+```
+cd testServer-0.0.1/
+mvn test
+```
+
 # Configuration File
 
 The Configuration is a yaml file having multiple.
