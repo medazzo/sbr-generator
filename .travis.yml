@@ -12,6 +12,5 @@ script:
     - npm run buildTemplates
     - npm run test
     - cd serverTest-0.0.1-SNAP/
-    - ls -alh 
-    - mvn package
-    - mvn install
+    - mvn package -Dmaven.test.skip=true
+    - mvn install -Dmaven.test.skip=true

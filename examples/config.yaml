@@ -58,7 +58,7 @@ database:
     password: Easin
     ddlauto: update
 logging:
-  RootLoggerLevel: trace
+  RootLoggerLevel: INFO
   Loggers:
     - name: com.easin
       level: trace
@@ -84,24 +84,16 @@ entities:
         annotations:
           - "@Column(nullable = false)"
         type: String
-  - name: Company
-    crudRest: true
-    baseclass: BaseEntity
+  - name: Company        
     comment: Class representing the company parameters
     fields:
       - name: user
         comment: User created
         annotations:
           - '@JoinColumn(name="user_id", insertable=false, updatable=false)'
-          - "@ManyToOne(targetEntity = User.class, fetch = FetchType.EAGER)"
-          - "@JsonIgnore"
+          - "@ManyToOne(targetEntity = User.class, fetch = FetchType.EAGER)"          
           - "@ToString.Exclude"
-        type: User
-      - name: userId
-        comment: 'id of the user '
-        annotations:
-          - '@Column(name = "user_id", nullable = false)'
-        type: String
+        type: User      
       - name: mail
         type: String
         comment: the official Mail of the company
@@ -128,8 +120,7 @@ entities:
         annotations:
           - "@Column(nullable = false)"
         type: String
-  - name: Legal
-    baseclass: BaseEntity
+  - name: Legal    
     comment: Class representing the Legal parameters
     fields:
       - name: legalStatus
@@ -137,8 +128,7 @@ entities:
         annotations:
           - "@Column(nullable = false)"
         type: String
-  - name: Address
-    baseclass: BaseEntity
+  - name: Address    
     comment: Class representing the Address parameters
     fields:
       - name: address
