@@ -39,18 +39,18 @@ server:
 spring:
   profiles: dev
   datasource:
-    url: {{dbDev.url}}
-    username: {{dbDev.username}}
-    password: {{dbDev.password}}
-    driverClassName: {{dbDev.driverClassName}}
+    url: jdbc:h2:/tmp/{{project.name}}/sbr-gen-database.h2;DB_CLOSE_ON_EXIT=FALSE
+    username: easin
+    password: 
+    driverClassName: org.h2.Driver
   jpa:
     generate-ddl: true
     properties:
       hibernate:
         default_schema: public
-        dialect: {{dbDev.dialect}}
+        dialect: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: {{dbDev.ddlauto}}
+      ddl-auto: update
     show-sql: true
   jackson:
     serialization:
@@ -60,18 +60,18 @@ spring:
 spring:
   profiles: test
   datasource:
-    url: {{dbTest.url}}
-    username: {{dbTest.username}}
-    password: {{dbTest.password}}
-    driverClassName: {{dbTest.driverClassName}}
+    url: jdbc:h2:mem:test;DB_CLOSE_ON_EXIT=FALSE
+    username: easin
+    password: 
+    driverClassName: org.h2.Driver
     jpa:
       generate-ddl: true
       properties:
         hibernate:
           default_schema: public
-          dialect: {{dbTest.dialect}}
+          dialect: org.hibernate.dialect.H2Dialect
       hibernate:
-        ddl-auto: {{dbTest.ddlauto}}
+        ddl-auto: create
       show-sql: true
     jackson:
       serialization:
@@ -81,18 +81,18 @@ spring:
 spring:
   profiles: prod
   datasource:
-    url: {{dbProd.url}}
-    username: {{dbProd.username}}
-    password: {{dbProd.password}}
-    driverClassName: {{dbProd.driverClassName}}
+    url: jdbc:postgresql://localhost:5432/essDB
+    username: easin
+    password: Easin
+    driverClassName: org.postgresql.Driver
     jpa:
       generate-ddl: true
       properties:
         hibernate:
           default_schema: public
-          dialect: {{dbProd.dialect}}
+          dialect: org.hibernate.dialect.PostgreSQL82Dialect
       hibernate:
-        ddl-auto: {{dbProd.ddlauto}}
+        ddl-auto: update
       show-sql: true
     jackson:
       serialization:
@@ -112,8 +112,7 @@ public final class AuthoritiesConstants {
 {% endfor %}
     private AuthoritiesConstants() {
     }
-}
-~   """,
+} """,
     'BaseEntity.java' :  """package {{package}};
 
 import java.io.Serializable;
@@ -1445,6 +1444,7 @@ public class SwaggerConfiguration {
           .build();                                           
     }
 } """,
+    'target' :  """ """,
     'WebInitializer.java' :  """package {{package}};
 
 import org.springframework.boot.builder.SpringApplicationBuilder;

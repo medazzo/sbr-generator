@@ -190,11 +190,7 @@ class Generator:
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.properties_Template])
         Helper.logger.debug("> Generating Configurations file ..")
         # Generate
-        output = template.render(project=self.__project,
-                                 dbProd=self.configuration.databaseProd,
-                                 dbDev=self.configuration.databaseDev,
-                                 dbTest=self.configuration.databaseTest
-                                 ).encode("utf-8")
+        output = template.render(project=self.__project).encode("utf-8")
         f = open(self.outputDir + Project.Resources_Dir + Generator.properties_Template, 'wb')
         f.write(output)
         f.close()

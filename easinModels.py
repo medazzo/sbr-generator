@@ -138,17 +138,7 @@ class Configuration():
         for fi in config['logging']['Loggers']:
             f = Logger(fi['name'], fi['level'])
             self.Loggers.append(f)
-        Helper.logger.info("> > {} Loggers  has been Analysed .".format(len(self.Loggers)))
-        # Setup extra DB  params
-        self.databaseProd = Database(config['database']['prod']['url'], config['database']['prod']['dialect'],
-                                    config['database']['prod']['driverClassName'], config['database']['prod']['username'],
-                                    config['database']['prod']['password'], config['database']['prod']['ddlauto'])
-        self.databaseDev = Database(config['database']['dev']['url'], config['database']['dev']['dialect'],
-                                    config['database']['dev']['driverClassName'], config['database']['dev']['username'],
-                                    config['database']['dev']['password'], config['database']['dev']['ddlauto'])
-        self.databaseTest = Database(config['database']['test']['url'], config['database']['test']['dialect'],
-                                    config['database']['test']['driverClassName'], config['database']['test']['username'],
-                                    config['database']['test']['password'], config['database']['test']['ddlauto'])
+        Helper.logger.info("> > {} Loggers  has been Analysed .".format(len(self.Loggers)))        
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Entity Class

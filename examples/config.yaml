@@ -14,28 +14,6 @@ project:
     # from now security is activated always and cannot be disactivated
     # by default access is GRANTED for all entity for all roles
     # can be changes once the code is generated     
-database:
-  test:
-    url: jdbc:h2:mem:test;DB_CLOSE_ON_EXIT=FALSE
-    dialect: org.hibernate.dialect.H2Dialect
-    driverClassName: org.h2.Driver
-    username: easin
-    password: ''
-    ddlauto: create
-  dev:
-    url: jdbc:h2:/tmp/sbr-gen-database.h2;DB_CLOSE_ON_EXIT=FALSE
-    dialect: org.hibernate.dialect.H2Dialect
-    driverClassName: org.h2.Driver
-    username: easin
-    password: ''
-    ddlauto: update
-  prod:
-    url: jdbc:postgresql://localhost:5432/essDB
-    dialect: org.hibernate.dialect.PostgreSQL82Dialect
-    driverClassName: org.postgresql.Driver
-    username: easin
-    password: Easin
-    ddlauto: update
 logging:
   RootLoggerLevel: INFO
   Loggers:
