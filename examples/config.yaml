@@ -8,33 +8,12 @@ project:
   package: com.easin.serverTest
   version: 0.0.1-SNAP
   security:
-    # When security is enabled roles are mandatory
-    # by default access is granted on CRUD for all entity
-    # This can be modified by adding under entity
-    # forbidden:
-    # security:
-    #   - C: # to refer Create Operation
-    #     - "ROLE2"
-    #   - R: # to refer READ Operation
-    #     - "ROLE1"
-    #   - RA: # to refer READ ALL Operation
-    #     - "ROLE2"
-    #   - U: # to refer Update Operation
-    #     - "ROLE2"
-    #   - D: # to refer Delete Operation
-    #     - "ROLE1"
-    # To make operation open without any security checks use
-    #  opens:
-    #    - C: # to refer Create Operation
-    #    - R: # to refer READ Operation
-    #    - RA: # to refer READ ALL Operation
-    #    - U: # to refer Update Operation
-    #
-    enableRoles: True
-    roles:
-      - "USER"
-      - "ADMIN"
-      - "CLIENT"
+    extraroles: # please do not prefix roles with ROLE_ !      
+      - "PROVIDER"
+      - "CONSUMER"
+    # from now security is activated always and cannot be disactivated
+    # by default access is GRANTED for all entity for all roles
+    # can be changes once the code is generated     
 database:
   test:
     url: jdbc:h2:mem:test;DB_CLOSE_ON_EXIT=FALSE
@@ -44,7 +23,7 @@ database:
     password: ''
     ddlauto: create
   dev:
-    url: jdbc:h2:~/database.h2;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:/tmp/sbr-gen-database.h2;DB_CLOSE_ON_EXIT=FALSE
     dialect: org.hibernate.dialect.H2Dialect
     driverClassName: org.h2.Driver
     username: easin

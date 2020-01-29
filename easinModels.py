@@ -37,6 +37,7 @@ class Project:
     Controller_prepend      = "Controller"
     Repository_prepend      = "Repository"
 
+    Security_folder         = "security"
     Entities_folder         = "entities"
     Repositories_folder     = "repositories"
     Exceptions_folder       = "exceptions"
@@ -48,15 +49,44 @@ class Project:
     JAVA_Dir                = "/src/main/java/"
     Test_Dir                = "/src/test/java/"
     Resources_Dir           = "/src/main/resources/"
-    def __init__(self, name=None, package=None, version=None, longname=None, description=None, url=None, restPath=None):
-        self.name = name
-        self.package = package
-        self.version = version
-        self.longname = longname
-        self.description = description
-        self.url = url
-        self.restPath = restPath
-
+    def __init__(self, projectConf=None):
+        self.projectConf = projectConf
+        if "name" not in self.projectConf:
+            Helper.logger.critical('project must have name !.')
+            raise TypeError('project must have name !.')
+        self.name = self.projectConf['name']
+        if "package" not in self.projectConf:
+            Helper.logger.critical('project must have package !.')
+            raise TypeError('project must have package !.')
+        self.package = self.projectConf['package']
+        if "version" not in self.projectConf:
+            Helper.logger.critical('project must have version !.')
+            raise TypeError('project must have version !.')
+        self.version = self.projectConf['version']
+        if "longname" not in self.projectConf:
+            Helper.logger.critical('project must have longname !.')
+            raise TypeError('project must have longname !.')
+        self.longname = self.projectConf['longname']
+        if "description" not in self.projectConf:
+            Helper.logger.critical('project must have description !.')
+            raise TypeError('project must have description !.')
+        self.description = self.projectConf['description']
+        if "url" not in self.projectConf:
+            Helper.logger.critical('project must have url !.')
+            raise TypeError('project must have url !.')
+        self.url = self.projectConf['url']
+        if "restPath" not in self.projectConf:
+            Helper.logger.critical('project must have restPath !.')
+            raise TypeError('project must have restPath !.')
+        self.restPath = self.projectConf['restPath']
+        self.securityRoles = []
+        if "extraroles" in self.projectConf["security"]:
+            roles = self.projectConf['security'] ['extraroles']            
+            for r in roles: 
+                if r.upper().startswith ("ROLE") :
+                    Helper.logger.critical('Role string must not  start with ROLE !.')
+                    raise TypeError('Role string must not  start with ROLE !.')
+                self.securityRoles.append(r.upper())
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Logger Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

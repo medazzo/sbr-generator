@@ -55,9 +55,6 @@ class ConfigLoader:
             raise FileNotFoundError("Wrong file or file path for config file @ {} ".format(self.configfile))
         self.configuration = yaml.safe_load(self.file)
         pp = pprint.PrettyPrinter(indent=4)
-        self.project = Project(self.configuration['project']['name'], self.configuration['project']['package'],
-                               self.configuration['project']['version'], self.configuration['project']['longname'],
-                               self.configuration['project']['description'], self.configuration['project']['url'],
-                               self.configuration['project']['restPath']);
+        self.project = Project(self.configuration['project']);
         Helper.logger.info("Config  loaded correctly ..")
         if self.verbose: pp.pprint(self.configuration)
