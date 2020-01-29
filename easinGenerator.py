@@ -46,7 +46,8 @@ class Generator:
     HelperTests_Template    = "HelperTests.java"
 
     Template_Dir            = "templates"
-    def __init__(self, outputDir=None, verbose=False, project = None,entities=list()):
+    def __init__(self, outputDir=None, verbose=False, tests=False, security=True, project = None,entities=list(), conf=None):
+        # Setup some params        
         if not isinstance(project, Project):
             Helper.logger.critical('project must be of Project type !.')
             raise TypeError('project must be of Project type !.')
@@ -56,11 +57,11 @@ class Generator:
         self.__project = project
         self.outputDir = outputDir
         self.verbose = verbose
-        self.entities = list()
-        self.controllers = list()
-        self.configuration = None
-        # Setup some params
+        self.tests = tests
+        self.security = security
         self.entities = entities
+        self.controllers = list()
+        self.configuration = conf        
         # check output Directory
         if self.outputDir is DefaultOutput_Dir:
             self.outputDir = './' + self.__project.name + '-' + self.__project.version
@@ -78,7 +79,21 @@ class Generator:
         loader = jinja2.FileSystemLoader(searchpath=self.__pathTemplate)
         self.templateEnv = jinja2.Environment(loader=loader)
 
-    def GenerateEntity(self):              
+    def GenerateAll(self):
+        Helper.logger.info("Generate Base ==>   ")
+        self.__GenerateBase()
+        Helper.logger.info("Generate Entities ==>   ")
+        self.__GenerateEntity()    
+        Helper.logger.info("Generate configurations ==>   ")
+        self.__GenerateConfiguration()
+        if self.tests:
+            Helper.logger.info("Generate tests ==>   ")
+            self.__GenerateTests()
+        if self.security:
+            Helper.logger.info("Generate Security ==>   ")
+            self.__GenerateSecurity()
+
+    def __GenerateEntity(self):              
         #loop in entities
         for ent in self.entities:            
             # Generate
@@ -119,7 +134,7 @@ class Generator:
             f.write(output)
             f.close()            
         
-    def GenerateBase(self):
+    def __GenerateBase(self):
         # Preparing templates
         self.templateEntity = Environment(loader=BaseLoader()).from_string(templates[Generator.Entity_Template])
         self.templateRepo = Environment(loader=BaseLoader()).from_string(templates[Generator.EntityRepo_Template])
@@ -174,10 +189,9 @@ class Generator:
         f.write(output)
         f.close()          
 
-    def GenerateConfiguration(self,conf=None):
+    def __GenerateConfiguration(self):
         exceptionDirs = self.__srcdir + '/' + Project.Exceptions_folder
-        os.makedirs(exceptionDirs)
-        self.configuration=conf
+        os.makedirs(exceptionDirs)        
         # Generate xml logging configuration
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.log4j2_Template])
         Helper.logger.debug("> Generating Configuration logger ..")
@@ -250,7 +264,7 @@ class Generator:
         f.write(output)
         f.close()
 
-    def GenerateTests(self):
+    def __GenerateTests(self):
         #loop in entities
         for ent in self.entities: 
             # Generate
@@ -275,7 +289,7 @@ class Generator:
         f.write(output)
         f.close()           
 
-    def GenerateSecurity(self):
+    def __GenerateSecurity(self):
         # Generate
         Helper.logger.debug("> Generating Authorities file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.Authorities_Template])
@@ -297,15 +311,17 @@ def main(argv):
     parser = argparse.ArgumentParser(
         prog='SBR Generator',
         description='SBR generator: Generate Spring Boot Rest source code.')
-    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Enable verbose traces')
-    parser.add_argument('-t', '--tests', dest='tests', action='store_true', help='Enable tests')
-    parser.add_argument('-c', '--config', dest='configfile', action='store',
+    parser.add_argument('-v', '--mode-verbose', dest='verbose', action='store_true', help='Enable verbose traces')
+    parser.add_argument('-t', '--enable-tests', dest='tests', action='store_true', help='Enable tests')
+    parser.add_argument('-s', '--disable-security', dest='security', action='store_false', help='Disable security')
+    parser.add_argument('-c', '--config-file', dest='configfile', action='store',
                         help='The Yaml config file ', required=True)
     parser.add_argument('-o', '--outputDir', dest='outputDir', action='store',default=DefaultOutput_Dir,
                         help='The Output folder where to store generated source code', )
     args = parser.parse_args()
     Helper.logger.info("[  ok ] verbose     : '{}'     ".format(args.verbose))
-    Helper.logger.info("[  ok ] tests     : '{}'     ".format(args.tests))
+    Helper.logger.info("[  ok ] tests       : '{}'     ".format(args.tests))
+    Helper.logger.info("[  ok ] security    : '{}'     ".format(args.security))
     Helper.logger.info("[  ok ] configfile  : '{}'   ".format(args.configfile))
     Helper.logger.info("[  ok ] outputDir   : '{}'     ".format(args.outputDir))
     # Load configuration
@@ -319,18 +335,8 @@ def main(argv):
     analyser = Analyser(econ.project, econ.configuration)
     # Generate ...
     Helper.logger.info("Generate ..   ")
-    gen = Generator(args.outputDir, args.verbose, econ.project, analyser.AllEntities)
-    Helper.logger.info("Generate Base ==>   ")
-    gen.GenerateBase()
-    Helper.logger.info("Generate Entities ==>   ")
-    gen.GenerateEntity()    
-    Helper.logger.info("Generate configurations ==>   ")
-    gen.GenerateConfiguration(analyser.Configuration)
-    Helper.logger.info("Generate Security ==>   ")
-    gen.GenerateSecurity()
-    if args.tests:
-        Helper.logger.info("Generate tests ==>   ")
-        gen.GenerateTests()
+    gen = Generator(args.outputDir, args.verbose, args.tests, args.security, econ.project, analyser.AllEntities, analyser.Configuration)
+    gen.GenerateAll()    
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The Default function

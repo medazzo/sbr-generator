@@ -1444,7 +1444,6 @@ public class SwaggerConfiguration {
           .build();                                           
     }
 } """,
-    'target' :  """ """,
     'WebInitializer.java' :  """package {{package}};
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
