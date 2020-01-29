@@ -15,38 +15,48 @@ import pprint, os, shutil
 import jinja2
 from jinja2 import Environment, BaseLoader
 from easinTemplates import templates
+
 DefaultOutput_Dir = "./tmp-out"
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Generator Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Generator:
     """A Generator   class"""
-    Entity_Template         = "entity.java"
-    EntityRepo_Template     = "Repository.java"
-    Controller_Template     = "controller.java"
-    Authorities_Template    = "AuthoritiesConstants.java"
-    log4j2_Template         = "log4j2.xml"
-    pom_Template            = "pom.xml"
-    properties_Template     = "application.yaml"
-    application_Template    = "Application.java"
-    logginFilter_Template   = "RequestLoggingFilterConfig.java"
-    SwaggerConfig_Template  = "SwaggerConfiguration.java"
+    Entity_Template = "entity.java"
+    EntityRepo_Template = "Repository.java"
+    Controller_Template = "controller.java"
+    log4j2_Template = "log4j2.xml"
+    pom_Template = "pom.xml"
+    properties_Template = "application.yaml"
+    application_Template = "Application.java"
+    LoggingFilter_Template = "RequestLoggingFilterConfig.java"
+    SwaggerConfig_Template = "SwaggerConfiguration.java"
     webInitializer_Template = "WebInitializer.java"
-    BaseEntity_Template     = "BaseEntity.java"
-    IController_Template    = "icontroller.java"
-    IService_Template       = "IService.java"
-    Service_Template        = "Service.java"
-    ExceptionBad_Template   = "ResourceBadParameterException.java"
-    ExceptionNot_Template   = "ResourceNotFoundException.java"
-    ErrorControl_Template   = "MyErrorController.java"
-    StatusControl_Template  = "StatusController.java"
-    READMEFILE_Template     = "README.md"
-    CrudTest_Template       = "CrudUnitTest.java"
-    HelperTests_Template    = "HelperTests.java"
+    BaseEntity_Template = "BaseEntity.java"
+    IController_Template = "IController.java"
+    IService_Template = "IService.java"
+    Service_Template = "Service.java"
+    ExceptionBad_Template = "ResourceBadParameterException.java"
+    ExceptionNot_Template = "ResourceNotFoundException.java"
+    ErrorControl_Template = "MyErrorController.java"
+    StatusControl_Template = "StatusController.java"
+    READMEFILE_Template = "README.md"
+    CrudTest_Template = "CrudUnitTest.java"
+    HelperTests_Template = "HelperTests.java"
+    Constants_Template = "Constants.java"
+    Authorities_Template = "AuthoritiesConstants.java"
+    WebSecurityConfig_Template = "WebSecurityConfig.java"
+    TokenProvider_Template = "TokenProvider.java"
+    RestConfig_Template = "RestConfig.java"
+    JwtAuthenticationEntryPoint_Template = "JwtAuthenticationEntryPoint.java"
+    JwtAuthenticationFilter_Template = "JwtAuthenticationFilter.java"
+    UserInfoService_Template = "UserInfoService.java"
+    Template_Dir = "templates"
 
-    Template_Dir            = "templates"
-    def __init__(self, outputDir=None, verbose=False, tests=False, security=True, project = None,entities=list(), conf=None):
+    def __init__(self, outputDir=None, verbose=False, tests=False, security=True, project=None, entities=list(),
+                 conf=None):
         # Setup some params        
         if not isinstance(project, Project):
             Helper.logger.critical('project must be of Project type !.')
@@ -61,7 +71,7 @@ class Generator:
         self.security = security
         self.entities = entities
         self.controllers = list()
-        self.configuration = conf        
+        self.configuration = conf
         # check output Directory
         if self.outputDir is DefaultOutput_Dir:
             self.outputDir = './' + self.__project.name + '-' + self.__project.version
@@ -72,18 +82,16 @@ class Generator:
         os.makedirs(self.outputDir + Project.JAVA_Dir)
         self.__srcdir = self.outputDir + Project.JAVA_Dir + self.__project.package.replace(".", "/")
         os.makedirs(self.outputDir + Project.Resources_Dir)
-        self.__testdir = self.outputDir + Project.Test_Dir + self.__project.package.replace(".", "/")        
-        os.makedirs(self.__testdir)        
         #  prepare template loader
         self.__pathTemplate = os.getcwd() + "/" + Generator.Template_Dir
         loader = jinja2.FileSystemLoader(searchpath=self.__pathTemplate)
         self.templateEnv = jinja2.Environment(loader=loader)
 
-    def GenerateAll(self):
+    def generate(self):
         Helper.logger.info("Generate Base ==>   ")
         self.__GenerateBase()
         Helper.logger.info("Generate Entities ==>   ")
-        self.__GenerateEntity()    
+        self.__GenerateEntity()
         Helper.logger.info("Generate configurations ==>   ")
         self.__GenerateConfiguration()
         if self.tests:
@@ -93,47 +101,48 @@ class Generator:
             Helper.logger.info("Generate Security ==>   ")
             self.__GenerateSecurity()
 
-    def __GenerateEntity(self):              
-        #loop in entities
-        for ent in self.entities:            
+    def __GenerateEntity(self):
+        # loop in entities
+        for ent in self.entities:
             # Generate
             Helper.logger.debug("> Generating Classes for Entity {} .".format(ent.name))
-            output = self.templateEntity.render(package=self.__project.package+"."+Project.Entities_folder,entity=ent).encode("utf-8")
-            f = open(self.entityDirs+'/'+ent.name+'.java', 'wb')
+            output = self.templateEntity.render(package=self.__project.package + "." + Project.Entities_folder,
+                                                entity=ent).encode("utf-8")
+            f = open(self.entityDirs + '/' + ent.name + '.java', 'wb')
             f.write(output)
             f.close()
             # Generate
-            Helper.logger.debug("> Generating Repository for Entity {} .".format(ent.name))            
-            output = self.templateRepo.render(package=self.__project.package+"."+Project.Repositories_folder,
-                                         Entitypackage=self.__project.package+"."+Project.Entities_folder+"."+ent.name,
-                                         entityName=ent.name).encode("utf-8")
-            f = open(self.entityRepoDirs+'/'+ent.name+Project.Repository_prepend+'.java', 'wb')
+            Helper.logger.debug("> Generating Repository for Entity {} .".format(ent.name))
+            output = self.templateRepo.render(package=self.__project.package + "." + Project.Repositories_folder,
+                                              Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
+                                              entityName=ent.name).encode("utf-8")
+            f = open(self.entityRepoDirs + '/' + ent.name + Project.Repository_prepend + '.java', 'wb')
             f.write(output)
             f.close()
             # Generate
-            Helper.logger.debug("> Generating Controller for Entity {} .".format(ent.name))            
+            Helper.logger.debug("> Generating Controller for Entity {} .".format(ent.name))
             output = self.templateController.render(projectPackage=self.__project.package,
-                                               package=self.__project.package+"."+Project.Controllers_folder,
-                                               Entitypackage=self.__project.package+"."+Project.Entities_folder+"."+ent.name,
-                                               Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name+Project.Service_prepend,
-                                               entityName=ent.name,
-                                               mapping=Project.ApiPrefix+ent.name.lower()).encode("utf-8")
-            f = open(self.controllersDirs + '/' + ent.name +Project.Controller_prepend + '.java', 'wb')
+                                                    package=self.__project.package + "." + Project.Controllers_folder,
+                                                    Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
+                                                    Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name + Project.Service_prepend,
+                                                    entityName=ent.name,
+                                                    mapping=Project.ApiPrefix + ent.name.lower()).encode("utf-8")
+            f = open(self.controllersDirs + '/' + ent.name + Project.Controller_prepend + '.java', 'wb')
             f.write(output)
             f.close()
             # Generate
-            Helper.logger.debug("> Generating Service for Entity {} .".format(ent.name))            
+            Helper.logger.debug("> Generating Service for Entity {} .".format(ent.name))
             output = self.templateService.render(projectPackage=self.__project.package,
-                                            package=self.__project.package+"."+Project.Services_folder,
-                                            Entitypackage=self.__project.package+"."+Project.Entities_folder+"."+ent.name,
-                                            Repositorypackage=self.__project.package + "." + Project.Repositories_folder + "." + ent.name+Project.Repository_prepend,
-                                            Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name+Project.Service_prepend,
-                                            entityName=ent.name,
-                                            entity=ent).encode("utf-8")
-            f = open(self.servicesDirs + '/' + ent.name + Project.Service_prepend+'.java', 'wb')
+                                                 package=self.__project.package + "." + Project.Services_folder,
+                                                 Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
+                                                 Repositorypackage=self.__project.package + "." + Project.Repositories_folder + "." + ent.name + Project.Repository_prepend,
+                                                 Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name + Project.Service_prepend,
+                                                 entityName=ent.name,
+                                                 entity=ent).encode("utf-8")
+            f = open(self.servicesDirs + '/' + ent.name + Project.Service_prepend + '.java', 'wb')
             f.write(output)
-            f.close()            
-        
+            f.close()
+
     def __GenerateBase(self):
         # Preparing templates
         self.templateEntity = Environment(loader=BaseLoader()).from_string(templates[Generator.Entity_Template])
@@ -142,15 +151,13 @@ class Generator:
         self.templateService = Environment(loader=BaseLoader()).from_string(templates[Generator.Service_Template])
         # Creating dir's for entities , repositories, controllers, services
         self.entityDirs = self.__srcdir + '/' + Project.Entities_folder
-        os.makedirs(self.entityDirs)        
+        os.makedirs(self.entityDirs)
         self.entityRepoDirs = self.__srcdir + '/' + Project.Repositories_folder
-        os.makedirs(self.entityRepoDirs)        
+        os.makedirs(self.entityRepoDirs)
         self.controllersDirs = self.__srcdir + '/' + Project.Controllers_folder
-        os.makedirs(self.controllersDirs)        
+        os.makedirs(self.controllersDirs)
         self.servicesDirs = self.__srcdir + '/' + Project.Services_folder
-        os.makedirs(self.servicesDirs)        
-        self.securityDirs = self.__srcdir + '/' + Project.Security_folder
-        os.makedirs(self.securityDirs)  
+        os.makedirs(self.servicesDirs)
         # Generate
         Helper.logger.debug("> Generating Base entity file ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.BaseEntity_Template])
@@ -161,15 +168,15 @@ class Generator:
         # Generate
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.IController_Template])
         Helper.logger.debug("> Generating IController .")
-        output = template.render(package=self.__project.package + "." +Project.Controllers_folder).encode("utf-8")
-        f = open(self.controllersDirs + '/IController.java', 'wb')
+        output = template.render(package=self.__project.package + "." + Project.Controllers_folder).encode("utf-8")
+        f = open(self.controllersDirs + '/'+Generator.IController_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.IService_Template])
         Helper.logger.debug("> Generating IService .")
         packageService = self.__project.package + "." + Project.Services_folder
-        output = template.render(package=self.__project.package + "." +Project.Services_folder).encode("utf-8")
+        output = template.render(package=self.__project.package + "." + Project.Services_folder).encode("utf-8")
         f = open(self.servicesDirs + '/IService.java', 'wb')
         f.write(output)
         f.close()
@@ -177,7 +184,7 @@ class Generator:
         Helper.logger.debug("> Generating error Controller file ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.ErrorControl_Template])
         output = template.render(package=self.__project.package + "." + Project.Controllers_folder,
-                                    project=self.__project).encode("utf-8")
+                                 project=self.__project).encode("utf-8")
         f = open(self.controllersDirs + '/' + Generator.ErrorControl_Template, 'wb')
         f.write(output)
         f.close()
@@ -187,11 +194,11 @@ class Generator:
         output = template.render(package=self.__project.package + "." + Project.Controllers_folder).encode("utf-8")
         f = open(self.controllersDirs + '/' + Generator.StatusControl_Template, 'wb')
         f.write(output)
-        f.close()          
+        f.close()
 
     def __GenerateConfiguration(self):
         exceptionDirs = self.__srcdir + '/' + Project.Exceptions_folder
-        os.makedirs(exceptionDirs)        
+        os.makedirs(exceptionDirs)
         # Generate xml logging configuration
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.log4j2_Template])
         Helper.logger.debug("> Generating Configuration logger ..")
@@ -212,7 +219,7 @@ class Generator:
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.pom_Template])
         Helper.logger.debug("> Generating Configuration pom ..")
         # Generate
-        output = template.render(pom=self.__project).encode("utf-8")
+        output = template.render(pom=self.__project,security=self.security).encode("utf-8")
         f = open(self.outputDir + '/' + Generator.pom_Template, 'wb')
         f.write(output)
         f.close()
@@ -220,7 +227,7 @@ class Generator:
         Helper.logger.debug("> Generating application  files ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.application_Template])
         output = template.render(package=self.__project.package).encode("utf-8")
-        f = open(self.__srcdir  + '/' + Generator.application_Template, 'wb')
+        f = open(self.__srcdir + '/' + Generator.application_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
@@ -230,11 +237,11 @@ class Generator:
         f = open(self.__srcdir + '/' + Generator.SwaggerConfig_Template, 'wb')
         f.write(output)
         f.close()
-    	# Generate
+        # Generate
         Helper.logger.debug("> Generating Logging Filter files ..")
-        template = Environment(loader=BaseLoader()).from_string(templates[Generator.logginFilter_Template])
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.LoggingFilter_Template])
         output = template.render(package=self.__project.package).encode("utf-8")
-        f = open(self.__srcdir + '/' + Generator.logginFilter_Template, 'wb')
+        f = open(self.__srcdir + '/' + Generator.LoggingFilter_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
@@ -265,43 +272,101 @@ class Generator:
         f.close()
 
     def __GenerateTests(self):
-        #loop in entities
-        for ent in self.entities: 
+        self.__testdir = self.outputDir + Project.Test_Dir + self.__project.package.replace(".", "/")
+        os.makedirs(self.__testdir)
+        # loop in entities
+        for ent in self.entities:
             # Generate
             Helper.logger.debug("> Generating Crud tests file for Entity {} .".format(ent.name))
             template = Environment(loader=BaseLoader()).from_string(templates[Generator.CrudTest_Template])
-            output = template.render(   package=self.__project.package ,
-                                        Entitypackage=self.__project.package+"."+Project.Entities_folder+"."+ent.name,
-                                        Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name+Project.Service_prepend,
-                                        ServiceBasepackage=self.__project.package+"."+Project.Services_folder,
-                                        EntityBasepackage=self.__project.package+"."+Project.Entities_folder,
-                                        entityName=ent.name,
-                                        mapping=Project.ApiPrefix+ent.name.lower(),
-                                        entity=ent).encode("utf-8")
+            output = template.render(package=self.__project.package,
+                                     Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
+                                     Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name + Project.Service_prepend,
+                                     ServiceBasepackage=self.__project.package + "." + Project.Services_folder,
+                                     EntityBasepackage=self.__project.package + "." + Project.Entities_folder,
+                                     entityName=ent.name,
+                                     mapping=Project.ApiPrefix + ent.name.lower(),
+                                     entity=ent).encode("utf-8")
             f = open(self.__testdir + '/' + ent.name + Generator.CrudTest_Template, 'wb')
             f.write(output)
-            f.close()        
-        # Generate
+            f.close()
+            # Generate
         Helper.logger.debug("> Generating Helper test file ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.HelperTests_Template])
         output = template.render(package=self.__project.package).encode("utf-8")
         f = open(self.__testdir + '/' + Generator.HelperTests_Template, 'wb')
         f.write(output)
-        f.close()           
+        f.close()
 
     def __GenerateSecurity(self):
+        self.securityDirs = self.__srcdir + '/' + Project.Security_folder
+        os.makedirs(self.securityDirs)
         # Generate
         Helper.logger.debug("> Generating Authorities file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.Authorities_Template])
-        output = template.render(   package=self.__project.package +".securit" ,
-                                    roles=self.__project.securityRoles).encode("utf-8")
-        f = open(self.securityDirs + '/' +Generator.Authorities_Template, 'wb')
+        output = template.render(package=self.__project.package + "." + Project.Security_folder,
+                                 roles=self.__project.securityRoles).encode("utf-8")
+        f = open(self.securityDirs + '/' + Generator.Authorities_Template, 'wb')
+        f.write(output)
+        f.close()
+        # Generate
+        Helper.logger.debug("> Generating Constants file .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.Constants_Template])
+        output = template.render(package=self.__project.package + "." + Project.Security_folder,
+                                 key=Helper.randomString(10)).encode("utf-8")
+        f = open(self.securityDirs + '/' + Generator.Constants_Template, 'wb')
+        f.write(output)
+        f.close()
+        # Generate
+        Helper.logger.debug("> Generating WebSecurityConfig file .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.WebSecurityConfig_Template])
+        output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
+        f = open(self.securityDirs + '/' + Generator.WebSecurityConfig_Template, 'wb')
+        f.write(output)
+        f.close()
+        # Generate
+        Helper.logger.debug("> Generating TokenProvider file .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.TokenProvider_Template])
+        output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
+        f = open(self.securityDirs + '/' + Generator.TokenProvider_Template, 'wb')
+        f.write(output)
+        f.close()
+        # Generate
+        Helper.logger.debug("> Generating RestConfig file .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.RestConfig_Template])
+        output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
+        f = open(self.securityDirs + '/' + Generator.RestConfig_Template, 'wb')
+        f.write(output)
+        f.close()
+        # Generate
+        Helper.logger.debug("> Generating JwtAuthenticationEntryPoint file .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.JwtAuthenticationEntryPoint_Template])
+        output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
+        f = open(self.securityDirs + '/' + Generator.JwtAuthenticationEntryPoint_Template, 'wb')
+        f.write(output)
+        f.close()
+        # Generate
+        Helper.logger.debug("> Generating JwtAuthenticationFilter file .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.JwtAuthenticationFilter_Template])
+        output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
+        f = open(self.securityDirs + '/' + Generator.JwtAuthenticationFilter_Template, 'wb')
+        f.write(output)
+        f.close()
+        # Generate
+        Helper.logger.debug("> Generating UserInfoService file .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.UserInfoService_Template])
+        output = template.render(package=self.__project.package + "." + Project.Security_folder,
+                                 Entitypackage=self.__project.package + "." + Project.Entities_folder + ".User",
+                                 Repopackage=self.__project.package + "." + Project.Repositories_folder+".User" + Project.Repository_prepend).encode("utf-8")
+        f = open(self.securityDirs + '/' + Generator.UserInfoService_Template, 'wb')
         f.write(output)
         f.close()
 
     """ To string type method """
+
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The Main function
@@ -316,7 +381,7 @@ def main(argv):
     parser.add_argument('-s', '--disable-security', dest='security', action='store_false', help='Disable security')
     parser.add_argument('-c', '--config-file', dest='configfile', action='store',
                         help='The Yaml config file ', required=True)
-    parser.add_argument('-o', '--outputDir', dest='outputDir', action='store',default=DefaultOutput_Dir,
+    parser.add_argument('-o', '--outputDir', dest='outputDir', action='store', default=DefaultOutput_Dir,
                         help='The Output folder where to store generated source code', )
     args = parser.parse_args()
     Helper.logger.info("[  ok ] verbose     : '{}'     ".format(args.verbose))
@@ -335,8 +400,10 @@ def main(argv):
     analyser = Analyser(econ.project, econ.configuration)
     # Generate ...
     Helper.logger.info("Generate ..   ")
-    gen = Generator(args.outputDir, args.verbose, args.tests, args.security, econ.project, analyser.AllEntities, analyser.Configuration)
-    gen.GenerateAll()    
+    gen = Generator(args.outputDir, args.verbose, args.tests, args.security, econ.project, analyser.AllEntities,
+                    analyser.Configuration)
+    gen.generate()
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # The Default function

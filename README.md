@@ -112,33 +112,6 @@ mvn test
 
 The Configuration is a yaml file having multiple.
 
-## database section
-it defines the database sectin in profile test, dev and prod
-```yaml
-database:
-  test:
-    url: jdbc:h2:mem:test;DB_CLOSE_ON_EXIT=FALSE
-    dialect: org.hibernate.dialect.H2Dialect
-    driverClassName: org.h2.Driver
-    username: easin
-    password: ''
-    ddlauto: create
-  dev:
-    url: jdbc:h2:~/database.h2;DB_CLOSE_ON_EXIT=FALSE
-    dialect: org.hibernate.dialect.H2Dialect
-    driverClassName: org.h2.Driver
-    username: easin
-    password: ''
-    ddlauto: update
-  prod:
-    url: jdbc:postgresql://localhost:5432/essDB
-    dialect: org.hibernate.dialect.PostgreSQL82Dialect
-    driverClassName: org.postgresql.Driver
-    username: easin
-    password: Easin
-    ddlauto: update
-```
-
 ## logging section
 it will be used to generate the **src/main/resources/log4j2.xml** file , extra configuration need to be added manually to the file .
 ```yaml
@@ -153,7 +126,7 @@ logging:
       level: trace
 ```
 
-## entitys section
+## entitiess section
 This section is used to generate java package responsible for entity's : @Entity class and  JpaRepository for each one , also it schould generate action script definition foe theses entity to be used in front end 
 ```yaml
 entities:

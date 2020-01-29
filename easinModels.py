@@ -10,6 +10,9 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 from enum import Enum, unique
 import coloredlogs, logging
+import random
+import string
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Helper Class
@@ -28,27 +31,35 @@ class Helper:
         logger.error(" - - - Testing color")
         logger.critical(" - - - Testing color")
 
+    @staticmethod
+    def randomString(stringLength=10):
+        """Generate a random string of fixed length """
+        letters = string.ascii_lowercase
+        return ''.join(random.choice(letters) for i in range(stringLength))
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Project Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Project:
     """ A Project definition class"""
-    Service_prepend         = "Service"    
-    Controller_prepend      = "Controller"
-    Repository_prepend      = "Repository"
+    Service_prepend = "Service"
+    Controller_prepend = "Controller"
+    Repository_prepend = "Repository"
 
-    Security_folder         = "security"
-    Entities_folder         = "entities"
-    Repositories_folder     = "repositories"
-    Exceptions_folder       = "exceptions"
-    Controllers_folder      = "controllers"
-    Services_folder         = "services"
+    Security_folder = "security"
+    Entities_folder = "entities"
+    Repositories_folder = "repositories"
+    Exceptions_folder = "exceptions"
+    Controllers_folder = "controllers"
+    Services_folder = "services"
 
-    ApiPrefix                = "/api/"
+    ApiPrefix = "/api/"
 
-    JAVA_Dir                = "/src/main/java/"
-    Test_Dir                = "/src/test/java/"
-    Resources_Dir           = "/src/main/resources/"
+    JAVA_Dir = "/src/main/java/"
+    Test_Dir = "/src/test/java/"
+    Resources_Dir = "/src/main/resources/"
+
     def __init__(self, projectConf=None):
         self.projectConf = projectConf
         if "name" not in self.projectConf:
@@ -81,26 +92,31 @@ class Project:
         self.restPath = self.projectConf['restPath']
         self.securityRoles = []
         if "extraroles" in self.projectConf["security"]:
-            roles = self.projectConf['security'] ['extraroles']            
-            for r in roles: 
-                if r.upper().startswith ("ROLE") :
+            roles = self.projectConf['security']['extraroles']
+            for r in roles:
+                if r.upper().startswith("ROLE"):
                     Helper.logger.critical('Role string must not  start with ROLE !.')
                     raise TypeError('Role string must not  start with ROLE !.')
                 self.securityRoles.append(r.upper())
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Logger Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Logger:
     """ A Logger definition class"""
+
     def __init__(self, name=None, level=None):
         self.name = name
         self.level = level
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Database Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Database:
     """ A Database definition class"""
+
     def __init__(self, url=None, dialect=None, driverClassName=None, username=None, password=None, ddlauto=None):
         self.url = url
         self.dialect = dialect
@@ -109,45 +125,52 @@ class Database:
         self.password = password
         self.ddlauto = ddlauto
 
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Field Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Field:
     """ A Fields definition class"""
+
     def __init__(self, name=None, type="String", comment=None, annotations=list()):
         if not isinstance(annotations, list):
-            Helper.logger.critical('annotations must be a list of strings: '+annotations+'  !.' )
-            raise TypeError('annotations must be a list of strings: '+annotations+'  !.' )
+            Helper.logger.critical('annotations must be a list of strings: ' + annotations + '  !.')
+            raise TypeError('annotations must be a list of strings: ' + annotations + '  !.')
         self.name = name
         self.type = type
-        self.foreignKey= False
-        self.foreignEntity= None
+        self.foreignKey = False
+        self.foreignEntity = None
         self.comment = comment
         self.annotations = annotations
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Configuration Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Configuration():
     """ A Configuration definition class"""
+
     def __init__(self, project=None, config=None):
         self.project = project
-        self.name=project.name
+        self.name = project.name
         self.RootLoggerLevel = config['logging']['RootLoggerLevel']
         self.Loggers = list()
         for fi in config['logging']['Loggers']:
             f = Logger(fi['name'], fi['level'])
             self.Loggers.append(f)
-        Helper.logger.info("> > {} Loggers  has been Analysed .".format(len(self.Loggers)))        
+        Helper.logger.info("> > {} Loggers  has been Analysed .".format(len(self.Loggers)))
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
 #  Entity Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 class Entity():
     """ A Entity definition class"""
-    def __init__(self, project, name=None, comment=None,  fieldsconfig=list()):
+
+    def __init__(self, project, name=None, comment=None, fieldsconfig=list()):
         self.project = project
-        self.name = name[0].upper()+name[1:]
+        self.name = name[0].upper() + name[1:]
         self.fields = list()
         self.fieldsconfig = fieldsconfig
         self.comment = comment
@@ -156,17 +179,20 @@ class Entity():
             raise TypeError('fields must be a list of Field')
         Helper.logger.info("> Analysing Entity {} ..".format(self.name))
         for fi in self.fieldsconfig:
-            f =  Field(fi['name'], fi['type'],fi['comment'], fi['annotations'])
-            self.fields.append(f)            
+            f = Field(fi['name'], fi['type'], fi['comment'], fi['annotations'])
+            self.fields.append(f)
         Helper.logger.debug("> > {} Field's  has been Analysed .".format(len(self.fields)))
-    
+
     """ Function will loop into fields and replace entity name by id """
+
     def checkforLinks(self, othersEntitys):
         Helper.logger.debug("> > {} Rechecking Fields for links to others entity.".format(len(self.fields)))
         for field in self.fields:
             for ent in othersEntitys:
-                if ent.name == field.type :
-                    Helper.logger.warn("> > Entity {} , Field {} is having relation with Entity {} .. Updating ..".format(self.name ,field.name, field.type))
-                    field.foreignKey= True
-                    field.foreignEntity= ent.name
-
+                if ent.name == field.type:
+                    Helper.logger.warn(
+                        "> > Entity {} , Field {} is having relation with Entity {} .. Updating ..".format(self.name,
+                                                                                                           field.name,
+                                                                                                           field.type))
+                    field.foreignKey = True
+                    field.foreignEntity = ent.name

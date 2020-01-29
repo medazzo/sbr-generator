@@ -165,6 +165,18 @@ public abstract class BaseEntity implements Serializable {
     	this.updatedAt = new Date();
     }
 } """,
+    'bin' :  """ """,
+    'Constants.java' :  """package {{package}};
+
+public class Constants {
+
+    public static final long ACCESS_TOKEN_VALIDITY_SECONDS = 2 * 60 * 60;
+    public static final String SIGNING_KEY = "{{key}}";
+    public static final String TOKEN_PREFIX = "Bearer ";
+    public static final String HEADER_STRING = "Authorization";
+    public static final String AUTHORITIES_KEY = "scopes";
+    public static final int QUOTATIONS_COUNT_EXPIRES_DAY = 60;
+} """,
     'controller.java' :  """package {{package}};
 
 import {{Entitypackage}};
@@ -730,7 +742,7 @@ public class HelperTests {
     }
  
 } """,
-    'icontroller.java' :  """package {{package}};
+    'IController.java' :  """package {{package}};
 
 import java.util.List;
 
@@ -768,6 +780,101 @@ public interface IService<T> {
     public T update(T n);
 
     public void deleteone(String id);
+} """,
+    'JwtAuthenticationEntryPoint.java' :  """package {{package}};
+
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.stereotype.Component;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Serializable;
+
+@Component
+public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
+
+    private static final long serialVersionUID = -4265382752632842698L;
+
+    @Override
+    public void commence(HttpServletRequest request,
+            HttpServletResponse response,
+            AuthenticationException authException) throws IOException {
+            String error = "{\\\"error\\\": \\\""
+              + authException.getMessage()
+              + "\\\"}";
+            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getOutputStream().println(error);
+    }
+} """,
+    'JwtAuthenticationFilter.java' :  """package {{package}};
+
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.SignatureException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.web.filter.OncePerRequestFilter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import static {{package}}.Constants.HEADER_STRING;
+import static {{package}}.Constants.TOKEN_PREFIX;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    @Autowired
+    @Qualifier("userService")
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private TokenProvider jwtTokenUtil;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+            throws IOException, ServletException {
+        String header = req.getHeader(HEADER_STRING);
+        String email = null;
+        String authToken = null;
+        if (header != null && (header.startsWith(TOKEN_PREFIX) || header.startsWith(" " + TOKEN_PREFIX))) {
+            authToken = header.replace(TOKEN_PREFIX, "");
+            try {
+                email = jwtTokenUtil.getEmailFromToken(authToken);
+            } catch (IllegalArgumentException e) {
+                log.error("an error occured during getting email from token", e);
+            } catch (ExpiredJwtException e) {
+                log.warn("the token is expired and not valid anymore", e);
+            } catch (SignatureException e) {
+                log.error("Authentication Failed. email or Password not valid.");
+            }
+        } else {
+            log.warn("couldn't find bearer string, will ignore the header");
+        }
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+            if (jwtTokenUtil.validateToken(authToken, userDetails)) {
+                UsernamePasswordAuthenticationToken authentication
+                        = jwtTokenUtil.getAuthentication(authToken, SecurityContextHolder.getContext().getAuthentication(),
+                                userDetails);
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+                log.info("authenticated user " + email + ", setting security context");
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        }
+
+        chain.doFilter(req, res);
+    }
 } """,
     'log4j2.xml' :  """{% raw %}<?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
@@ -954,6 +1061,12 @@ public class MyErrorController implements ErrorController {
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        {%- if security %}
+           <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        {%- endif %}
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
@@ -1294,6 +1407,44 @@ public class ResourceNotFoundException extends RuntimeException {
 	}
 
 } """,
+    'RestConfig.java' :  """package {{package}};
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Configuration
+public class RestConfig {
+
+    @Bean
+    public CorsFilter corsFilter() {
+        log.info("Filtering CORS...........................................................");
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.addAllowedOrigin("*");
+        config.setMaxAge(Long.valueOf(3600));
+        config.addAllowedHeader("*");
+        config.addAllowedHeader("X-Requested-With");
+        config.addAllowedHeader("Content-Type");
+        config.addAllowedHeader("Authorization");
+        config.addAllowedHeader("Origin");
+        config.addAllowedHeader("Accept");
+        config.addAllowedHeader("Access-Control-Request-Method");
+        config.addAllowedHeader("Access-Control-Request-Headers");
+        config.addAllowedMethod("OPTIONS");
+        config.addAllowedMethod("GET");
+        config.addAllowedMethod("POST");
+        config.addAllowedMethod("PUT");
+        config.addAllowedMethod("DELETE");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+} """,
     'Service.java' :  """package {{package}};
 
 
@@ -1444,6 +1595,149 @@ public class SwaggerConfiguration {
           .build();                                           
     }
 } """,
+    'TokenProvider.java' :  """package {{package}};
+
+import io.jsonwebtoken.*;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import static {{package}}.Constants.ACCESS_TOKEN_VALIDITY_SECONDS;
+import static {{package}}.Constants.AUTHORITIES_KEY;
+import static {{package}}.Constants.SIGNING_KEY;
+
+@Component
+public class TokenProvider implements Serializable {
+
+    private static final long serialVersionUID = 8603495511390908974L;
+
+    public String getEmailFromToken(String token) {
+        return getClaimFromToken(token, Claims::getSubject);
+    }
+
+    public Date getExpirationDateFromToken(String token) {
+        return getClaimFromToken(token, Claims::getExpiration);
+    }
+
+    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = getAllClaimsFromToken(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims getAllClaimsFromToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(SIGNING_KEY)
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        final Date expiration = getExpirationDateFromToken(token);
+        return expiration.before(new Date());
+    }
+
+    public String generateToken(Authentication authentication) {
+        final String authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+        return Jwts.builder()
+                .setSubject(authentication.getName())
+                .claim(AUTHORITIES_KEY, authorities)
+                .signWith(SignatureAlgorithm.HS256, SIGNING_KEY)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_VALIDITY_SECONDS * 1000))
+                .compact();
+    }
+
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        final String email = getEmailFromToken(token);
+        return (email.equals(userDetails.getUsername())
+                && !isTokenExpired(token));
+    }
+
+    UsernamePasswordAuthenticationToken getAuthentication(final String token, final Authentication existingAuth, final UserDetails userDetails) {
+
+        final JwtParser jwtParser = Jwts.parser().setSigningKey(SIGNING_KEY);
+
+        final Jws<Claims> claimsJws = jwtParser.parseClaimsJws(token);
+
+        final Claims claims = claimsJws.getBody();
+
+        final Collection<? extends GrantedAuthority> authorities
+                = Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+        return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
+    }
+
+} """,
+    'UserInfoService.java' :  """package {{package}};
+
+import {{Entitypackage}};
+import {{Repopackage}};
+import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service(value = "userService")
+public class UserInfoService implements UserDetailsService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private BCryptPasswordEncoder bcryptEncoder;
+
+    @Override
+    @Transactional
+    public UserDetails loadUserByUsername(final String login) {
+        log.debug("Authenticating user with login {}", login);
+
+        if (new EmailValidator().isValid(login, null)) {
+            return userRepository.findOneWithAuthoritiesByEmailIgnoreCase(login)
+                .map(user -> createSpringSecurityUser(login, user))
+                .orElseThrow(() -> new UsernameNotFoundException("User with email " + login + " was not found in the database"));
+        }
+
+        String lowercaseLogin = login.toLowerCase(Locale.ENGLISH);
+        return userRepository.findOneWithAuthoritiesByLogin(lowercaseLogin)
+            .map(user -> createSpringSecurityUser(lowercaseLogin, user))
+            .orElseThrow(() -> new UsernameNotFoundException("User " + lowercaseLogin + " was not found in the database"));
+
+    }
+
+    private org.springframework.security.core.userdetails.User createSpringSecurityUser(String lowercaseLogin, User user) {
+        if (!user.getActivated()) {
+            throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
+        }
+        List<GrantedAuthority> grantedAuthorities = user.getAuthorities().stream()
+            .map(authority -> new SimpleGrantedAuthority(authority.getName()))
+            .collect(Collectors.toList());
+        return new org.springframework.security.core.userdetails.User(user.getLogin(),
+            user.getPassword(),
+            grantedAuthorities);
+    }
+} """,
     'WebInitializer.java' :  """package {{package}};
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -1459,4 +1753,67 @@ public class WebInitializer extends SpringBootServletInitializer {
         log.warn(" .. .. .. .. .Initilizing App  .. .. ... .. .. ");
         return application.sources(Application.class);
     }
+} """,
+    'WebSecurityConfig.java' :  """package {{package}};
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import javax.annotation.Resource;
+
+@Configuration
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Resource(name = "userService")
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint unauthorizedHandler;
+
+    @Override
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
+    @Autowired
+    public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(encoder());
+    }
+
+    @Bean
+    public JwtAuthenticationFilter authenticationTokenFilterBean() throws Exception {
+        return new JwtAuthenticationFilter();
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.cors()
+                .and()
+                .csrf().disable()
+                .authorizeRequests().antMatchers("/status/*", "/auth/*", "/user/new", "/user/create").permitAll()
+                .anyRequest().authenticated()
+                .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
+                .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
+    }
+
+    @Bean
+    public BCryptPasswordEncoder encoder() {
+        return new BCryptPasswordEncoder();
+    }
+
 } """}
