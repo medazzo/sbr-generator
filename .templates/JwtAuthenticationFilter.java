@@ -15,8 +15,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import static {{package}}.Constants.HEADER_STRING;
-import static {{package}}.Constants.TOKEN_PREFIX;
+import static {{packageConstants}}.Constants.HEADER_STRING;
+import static {{packageConstants}}.Constants.TOKEN_PREFIX;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

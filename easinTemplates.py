@@ -97,7 +97,7 @@ spring:
     jackson:
       serialization:
         FAIL_ON_EMPTY_BEANS: False """,
-    'AuthoritiesConstants.java' :  """package {{package}}y;
+    'AuthoritiesConstants.java' :  """package {{package}};
 
 /**
  * Constants for Spring Security authorities.
@@ -110,8 +110,7 @@ public final class AuthoritiesConstants {
 {% for role in roles  %}
     public static final String {{role}} = "ROLE_{{role}}";
 {% endfor %}
-    private AuthoritiesConstants() {
-    }
+
 } """,
     'BaseEntity.java' :  """package {{package}};
 
@@ -165,7 +164,6 @@ public abstract class BaseEntity implements Serializable {
     	this.updatedAt = new Date();
     }
 } """,
-    'bin' :  """ """,
     'Constants.java' :  """package {{package}};
 
 public class Constants {
@@ -176,6 +174,14 @@ public class Constants {
     public static final String HEADER_STRING = "Authorization";
     public static final String AUTHORITIES_KEY = "scopes";
     public static final int QUOTATIONS_COUNT_EXPIRES_DAY = 60;
+    public static final String LOGIN_REGEX = "^[_.@A-Za-z0-9-]*$";
+    public static final String SYSTEM_ACCOUNT = "system";
+    public static final String DEFAULT_LANGUAGE = "en";
+    public static final String ANONYMOUS_USER = "anonymoususer";
+
+    private Constants() {
+    }
+
 } """,
     'controller.java' :  """package {{package}};
 
@@ -183,6 +189,9 @@ import {{Entitypackage}};
 import {{projectPackage}}.exceptions.ResourceBadParameterException;
 import {{projectPackage}}.exceptions.ResourceNotFoundException;
 import {{Servicepackage}};
+{%- if security  %}
+import org.springframework.security.access.prepost.PreAuthorize;
+{%- endif  %}
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -206,6 +215,9 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @Override
     @ApiOperation(value = "Create a new  {{entityName}} ", nickname = "CreateNew{{entityName}}" ,
  tags = { "{{entityName}}" })
+ {%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+ {%- endif  %}
     public ResponseEntity<{{entityName}}> create(@RequestBody {{entityName}} n) {
         if (n == null) {
             throw new ResourceBadParameterException("{{entityName}}", "new", n);
@@ -220,6 +232,9 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @Override
     @ApiOperation(value = "Get all stored {{entityName}} !", nickname = "GetAll{{entityName}}" ,
  tags = { "{{entityName}}" })
+ {%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+ {%- endif  %}
     public List<{{entityName}}> getAll() {
         log.debug(" -->  Will Get All {{entityName}}'s'");
         return service.getAll();
@@ -228,8 +243,11 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @GetMapping("/all/{id}")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Get all stored {{entityName}} using some extra ID( user/group ID or some other ID)", 
+    @ApiOperation(value = "Get all stored {{entityName}} using some extra ID( user/group ID or some other ID)",
         nickname = "GetAll{{entityName}}BySomeID" , tags = { "{{entityName}}" })
+{%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+{%- endif  %}
     public List<{{entityName}}> getAllBySomeId(String id) {
         if (id == null) {
             throw new ResourceNotFoundException("{{entityName}}", "some id", id);
@@ -243,6 +261,9 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @Override
     @ApiOperation(value = "Get stored {{entityName}} using his unique ID", nickname = "GetOne{{entityName}}ById" ,
  tags = { "{{entityName}}" })
+ {%- if security  %}
+     @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+ {%- endif  %}
     public {{entityName}} getOne(@PathVariable String id) {
         if (id == null) {
             throw new ResourceNotFoundException("{{entityName}}", "id", id);
@@ -256,6 +277,9 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @Override
     @ApiOperation(value = "Update the stored {{entityName}} using his unique ID",
          nickname = "UpdateOne{{entityName}}ById" , tags = { "{{entityName}}" })
+{%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+{%- endif  %}
     public {{entityName}} update(@PathVariable String id, @RequestBody {{entityName}} n) {
         if (n == null) {
             throw new ResourceNotFoundException("{{entityName}}", "object", n);
@@ -273,8 +297,11 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @DeleteMapping("/{id}")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Removing the stored {{entityName}} using his unique ID", 
+    @ApiOperation(value = "Removing the stored {{entityName}} using his unique ID",
         nickname = "RemoveOne{{entityName}}ById" , tags = { "{{entityName}}" })
+{%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+{%- endif  %}
     public void delete(@PathVariable String id) {
         if (id == null) {
             throw new ResourceNotFoundException("{{entityName}}", "id", id);
@@ -825,8 +852,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import static {{package}}.Constants.HEADER_STRING;
-import static {{package}}.Constants.TOKEN_PREFIX;
+import static {{packageConstants}}.Constants.HEADER_STRING;
+import static {{packageConstants}}.Constants.TOKEN_PREFIX;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -1315,10 +1342,16 @@ server:
 
 import {{Entitypackage}};
 import org.springframework.data.jpa.repository.JpaRepository;
-
+{%- if entityName == "User"  %}
+import org.springframework.data.jpa.repository.Query;
+{%- endif  %}
 import java.util.List;
 
 public interface {{entityName}}Repository extends JpaRepository<{{entityName}}, String> {
+{%- if entityName == "User"  %}
+   @Query("select u from User u where u.Email = ?1")
+   User findByEmail(String Email);
+{%- endif  %}
 	public List<{{entityName}}> findByName(String name);
 } """,
     'RequestLoggingFilterConfig.java' :  """package {{package}};
@@ -1610,9 +1643,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import static {{package}}.Constants.ACCESS_TOKEN_VALIDITY_SECONDS;
-import static {{package}}.Constants.AUTHORITIES_KEY;
-import static {{package}}.Constants.SIGNING_KEY;
+import static {{packageConstants}}.Constants.ACCESS_TOKEN_VALIDITY_SECONDS;
+import static {{packageConstants}}.Constants.AUTHORITIES_KEY;
+import static {{packageConstants}}.Constants.SIGNING_KEY;
 
 @Component
 public class TokenProvider implements Serializable {
@@ -1680,62 +1713,233 @@ public class TokenProvider implements Serializable {
     }
 
 } """,
-    'UserInfoService.java' :  """package {{package}};
+    'User.java' :  """package {{package}} ;
 
-import {{Entitypackage}};
-import {{Repopackage}};
-import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator;
-import org.springframework.security.core.GrantedAuthority;
+import javax.persistence.*;
+import javax.validation.constraints.*;
+import lombok.*;
+import java.time.Instant;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiModel;
+import org.hibernate.annotations.GenericGenerator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.BatchSize;
+import {{configConstants}}.Constants;
+
+/**
+ * User definition Class
+ */
+@ApiModel(description = "User definition Class")
+@Slf4j
+@Getter
+@Setter
+@AllArgsConstructor
+@ToString
+@Entity
+public class User extends BaseEntity {
+
+    @Id
+    @GeneratedValue(generator = "system-uuid", strategy = GenerationType.IDENTITY)
+    @GenericGenerator(name = "system-uuid", strategy = "uuid2")
+    @ApiModelProperty(hidden = true)
+    protected String Id;
+
+
+{%- for field in entity.fields | sort(attribute='name') %}
+    /** {{field.comment}} */
+    @ApiModelProperty(value = " {{field.comment}} ")
+{%- for annot in field.annotations  %}
+    {{annot}}
+{%- endfor %}
+    private {{field.type}} {{field.name}};
+{% endfor %}
+
+@NotNull
+ @Pattern(regexp = Constants.LOGIN_REGEX)
+ @Size(min = 1, max = 50)
+ @Column(length = 50, unique = true, nullable = false)
+ private String login;
+
+ @JsonIgnore
+ @NotNull
+ @Size(min = 60, max = 60)
+ @Column(name = "password_hash", length = 60, nullable = false)
+ private String password;
+
+ @Size(max = 50)
+ @Column(name = "first_name", length = 50)
+ private String firstName;
+
+ @Size(max = 50)
+ @Column(name = "last_name", length = 50)
+ private String lastName;
+
+ @Email
+ @Size(min = 5, max = 254)
+ @Column(length = 254, unique = true)
+ private String email;
+
+ @NotNull
+ @Column(nullable = false)
+ private boolean activated = false;
+
+ @Size(min = 2, max = 10)
+ @Column(name = "lang_key", length = 10)
+ private String langKey;
+
+ @Size(max = 256)
+ @Column(name = "image_url", length = 256)
+ private String imageUrl;
+
+ @Size(max = 20)
+ @Column(name = "activation_key", length = 20)
+ @JsonIgnore
+ private String activationKey;
+
+ @Size(max = 20)
+ @Column(name = "reset_key", length = 20)
+ @JsonIgnore
+ private String resetKey;
+
+ @Column(name = "reset_date")
+ private Instant resetDate = null;
+
+ @JsonIgnore
+ private String mainRole;
+
+    /**
+    * default constructor
+    */
+    public User() {
+        super();
+    }
+} """,
+    'UserService.java' :  """package {{package}};
+
+
+import {{package}}.IService;
+import {{projectPackage}}.exceptions.ResourceBadParameterException;
+import {{projectPackage}}.exceptions.ResourceNotFoundException;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.extern.slf4j.Slf4j;
-import java.util.*;
-import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import javax.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import {{Entitypackage}};
+import {{Repositorypackage}};
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service(value = "userService")
-public class UserInfoService implements UserDetailsService {
+public class UserService  implements  UserDetailsService, IService<User> {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository erepo;
 
-    private BCryptPasswordEncoder bcryptEncoder;
+    @Autowired
+     private BCryptPasswordEncoder bcryptEncoder;
+
+     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+     log.debug(" >>>>>>>>>>>>>> looking for user with email  " + email);
+     User user = erepo.findByEmail(email);
+
+     if (user == null) {
+         log.error(" UsernameNotFoundException : user not found with email " + email);
+         throw new UsernameNotFoundException("Invalid email or password.");
+     }
+     log.info(" >>>>>>>>>>>>>> Found user is   " + getAuthority(user));
+     UserDetails urd = new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), getAuthority(user));
+     return urd;
+ }
+
+ public User GetUserByUsername(String email) throws UsernameNotFoundException {
+     log.debug(" >>>>>>>>>>>>>> looking for user with email  " + email);
+     User user = erepo.findByEmail(email);
+
+     if (user == null) {
+         log.error(" UsernameNotFoundException : user not found with email " + email);
+         throw new UsernameNotFoundException("Invalid email or password.");
+     }
+
+     return user;
+ }
+
+ @Transactional
+ protected Set<SimpleGrantedAuthority> getAuthority(User user) {
+     Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+     authorities.add(new SimpleGrantedAuthority(user.getMainRole()));
+     return authorities;
+ }
+
 
     @Override
-    @Transactional
-    public UserDetails loadUserByUsername(final String login) {
-        log.debug("Authenticating user with login {}", login);
-
-        if (new EmailValidator().isValid(login, null)) {
-            return userRepository.findOneWithAuthoritiesByEmailIgnoreCase(login)
-                .map(user -> createSpringSecurityUser(login, user))
-                .orElseThrow(() -> new UsernameNotFoundException("User with email " + login + " was not found in the database"));
-        }
-
-        String lowercaseLogin = login.toLowerCase(Locale.ENGLISH);
-        return userRepository.findOneWithAuthoritiesByLogin(lowercaseLogin)
-            .map(user -> createSpringSecurityUser(lowercaseLogin, user))
-            .orElseThrow(() -> new UsernameNotFoundException("User " + lowercaseLogin + " was not found in the database"));
-
+    public User create(User n) {
+        log.info("Saving new  User .. " + n.toString());
+        return erepo.save(n);
     }
 
-    private org.springframework.security.core.userdetails.User createSpringSecurityUser(String lowercaseLogin, User user) {
-        if (!user.getActivated()) {
-            throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
+    @Override
+    public List<User> getAll() {
+        log.info("Getting All  .. ");
+            return erepo.findAll();
+    }
+
+    @Override
+    public List<User> getAllBySomeId(String id) {
+        log.info("Getting All by some id  ..  " + id);
+        // Todo correctly
+        return erepo.findAll();
+    }
+
+    @Override
+    public User getOne(String id) {
+        log.info("Getting one with id   .. " + id);
+        User cm = erepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        return cm;
+    }
+
+    @Override
+    public void deleteone(String id) {
+        log.info("Deleting one with id   .. " + id);
+        if (id == null) {
+            throw new ResourceNotFoundException("User", "id", id);
         }
-        List<GrantedAuthority> grantedAuthorities = user.getAuthorities().stream()
-            .map(authority -> new SimpleGrantedAuthority(authority.getName()))
-            .collect(Collectors.toList());
-        return new org.springframework.security.core.userdetails.User(user.getLogin(),
-            user.getPassword(),
-            grantedAuthorities);
+        if (this.erepo.existsById(id)) {
+            User cm = erepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+            erepo.deleteById(id);
+        } else {
+            throw new ResourceNotFoundException("User", "id", id);
+        }
+    }
+
+    @Override
+    public User update(User n) {
+        if (n == null) {
+            throw new ResourceNotFoundException("User", "id", n);
+        }
+        log.info("Updating one  User   .. " + n.toString());
+        return erepo.findById(n.getId()).map(found -> {
+            {% for field in entity.fields | sort(attribute='name') %}found.set{{field.name[0]|upper}}{{field.name[1:] }}(n.get{{field.name[0]|upper}}{{field.name[1:]}}());
+            {% endfor %}
+            return erepo.save(found);
+        }).orElseThrow(() -> {
+            throw new ResourceNotFoundException("User", "id", n.getId());
+        });
     }
 } """,
     'WebInitializer.java' :  """package {{package}};

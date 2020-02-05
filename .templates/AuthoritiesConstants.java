@@ -1,4 +1,4 @@
-package {{package}}y;
+package {{package}};
 
 /**
  * Constants for Spring Security authorities.
@@ -11,6 +11,5 @@ public final class AuthoritiesConstants {
 {% for role in roles  %}
     public static final String {{role}} = "ROLE_{{role}}";
 {% endfor %}
-    private AuthoritiesConstants() {
-    }
+
 }

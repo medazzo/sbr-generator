@@ -4,6 +4,9 @@ import {{Entitypackage}};
 import {{projectPackage}}.exceptions.ResourceBadParameterException;
 import {{projectPackage}}.exceptions.ResourceNotFoundException;
 import {{Servicepackage}};
+{%- if security  %}
+import org.springframework.security.access.prepost.PreAuthorize;
+{%- endif  %}
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -27,6 +30,9 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @Override
     @ApiOperation(value = "Create a new  {{entityName}} ", nickname = "CreateNew{{entityName}}" ,
  tags = { "{{entityName}}" })
+ {%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+ {%- endif  %}
     public ResponseEntity<{{entityName}}> create(@RequestBody {{entityName}} n) {
         if (n == null) {
             throw new ResourceBadParameterException("{{entityName}}", "new", n);
@@ -41,6 +47,9 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @Override
     @ApiOperation(value = "Get all stored {{entityName}} !", nickname = "GetAll{{entityName}}" ,
  tags = { "{{entityName}}" })
+ {%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+ {%- endif  %}
     public List<{{entityName}}> getAll() {
         log.debug(" -->  Will Get All {{entityName}}'s'");
         return service.getAll();
@@ -49,8 +58,11 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @GetMapping("/all/{id}")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Get all stored {{entityName}} using some extra ID( user/group ID or some other ID)", 
+    @ApiOperation(value = "Get all stored {{entityName}} using some extra ID( user/group ID or some other ID)",
         nickname = "GetAll{{entityName}}BySomeID" , tags = { "{{entityName}}" })
+{%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+{%- endif  %}
     public List<{{entityName}}> getAllBySomeId(String id) {
         if (id == null) {
             throw new ResourceNotFoundException("{{entityName}}", "some id", id);
@@ -64,6 +76,9 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @Override
     @ApiOperation(value = "Get stored {{entityName}} using his unique ID", nickname = "GetOne{{entityName}}ById" ,
  tags = { "{{entityName}}" })
+ {%- if security  %}
+     @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+ {%- endif  %}
     public {{entityName}} getOne(@PathVariable String id) {
         if (id == null) {
             throw new ResourceNotFoundException("{{entityName}}", "id", id);
@@ -77,6 +92,9 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @Override
     @ApiOperation(value = "Update the stored {{entityName}} using his unique ID",
          nickname = "UpdateOne{{entityName}}ById" , tags = { "{{entityName}}" })
+{%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+{%- endif  %}
     public {{entityName}} update(@PathVariable String id, @RequestBody {{entityName}} n) {
         if (n == null) {
             throw new ResourceNotFoundException("{{entityName}}", "object", n);
@@ -94,8 +112,11 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @DeleteMapping("/{id}")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Removing the stored {{entityName}} using his unique ID", 
+    @ApiOperation(value = "Removing the stored {{entityName}} using his unique ID",
         nickname = "RemoveOne{{entityName}}ById" , tags = { "{{entityName}}" })
+{%- if security  %}
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+{%- endif  %}
     public void delete(@PathVariable String id) {
         if (id == null) {
             throw new ResourceNotFoundException("{{entityName}}", "id", id);

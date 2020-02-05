@@ -47,6 +47,7 @@ class Project:
     Controller_prepend = "Controller"
     Repository_prepend = "Repository"
 
+    Config_folder  = "config"
     Security_folder = "security"
     Entities_folder = "entities"
     Repositories_folder = "repositories"

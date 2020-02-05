@@ -13,9 +13,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import static {{package}}.Constants.ACCESS_TOKEN_VALIDITY_SECONDS;
-import static {{package}}.Constants.AUTHORITIES_KEY;
-import static {{package}}.Constants.SIGNING_KEY;
+import static {{packageConstants}}.Constants.ACCESS_TOKEN_VALIDITY_SECONDS;
+import static {{packageConstants}}.Constants.AUTHORITIES_KEY;
+import static {{packageConstants}}.Constants.SIGNING_KEY;
 
 @Component
 public class TokenProvider implements Serializable {

@@ -52,12 +52,13 @@ class Generator:
     RestConfig_Template = "RestConfig.java"
     JwtAuthenticationEntryPoint_Template = "JwtAuthenticationEntryPoint.java"
     JwtAuthenticationFilter_Template = "JwtAuthenticationFilter.java"
-    UserInfoService_Template = "UserInfoService.java"
+    UserService_Template = "UserService.java"
+    UserEntity_Template = "User.java"
     Template_Dir = "templates"
 
     def __init__(self, outputDir=None, verbose=False, tests=False, security=True, project=None, entities=list(),
                  conf=None):
-        # Setup some params        
+        # Setup some params
         if not isinstance(project, Project):
             Helper.logger.critical('project must be of Project type !.')
             raise TypeError('project must be of Project type !.')
@@ -122,6 +123,8 @@ class Generator:
             # Generate
             Helper.logger.debug("> Generating Controller for Entity {} .".format(ent.name))
             output = self.templateController.render(projectPackage=self.__project.package,
+                                                    security = self.security,
+                                                    roles=self.__project.securityRoles,
                                                     package=self.__project.package + "." + Project.Controllers_folder,
                                                     Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
                                                     Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name + Project.Service_prepend,
@@ -130,6 +133,7 @@ class Generator:
             f = open(self.controllersDirs + '/' + ent.name + Project.Controller_prepend + '.java', 'wb')
             f.write(output)
             f.close()
+
             # Generate
             Helper.logger.debug("> Generating Service for Entity {} .".format(ent.name))
             output = self.templateService.render(projectPackage=self.__project.package,
@@ -142,6 +146,29 @@ class Generator:
             f = open(self.servicesDirs + '/' + ent.name + Project.Service_prepend + '.java', 'wb')
             f.write(output)
             f.close()
+            if ent.name == "User":
+                # Generate and overwrite the user entity, repositories and service
+                Helper.logger.debug("> Generating USer Classe  {} .".format(ent.name))
+                templateUserEntity = Environment(loader=BaseLoader()).from_string(templates[Generator.UserEntity_Template])
+                output = templateUserEntity.render( package=self.__project.package + "." + Project.Entities_folder,
+                                                    configConstants=self.__project.package + "." + Project.Config_folder ,
+                                                    entity=ent).encode("utf-8")
+                f = open(self.entityDirs + '/' + ent.name + '.java', 'wb')
+                f.write(output)
+                f.close()
+                if self.security:
+                    # Generate and overwrite the user service
+                    Helper.logger.debug("> Generating USer  Service file  for security profile.")
+                    template = Environment(loader=BaseLoader()).from_string(templates[Generator.UserService_Template])
+                    output = template.render(projectPackage=self.__project.package,
+                                             package=self.__project.package + "." + Project.Services_folder,
+                                             Repositorypackage=self.__project.package + "." + Project.Repositories_folder + "." + ent.name + Project.Repository_prepend,
+                                             Entitypackage=self.__project.package + "." + Project.Entities_folder + ".User",
+                                             entity=ent,
+                                             Repopackage=self.__project.package + "." + Project.Repositories_folder+".User" + Project.Repository_prepend).encode("utf-8")
+                    f = open(self.servicesDirs + '/' + Generator.UserService_Template, 'wb')
+                    f.write(output)
+                    f.close()
 
     def __GenerateBase(self):
         # Preparing templates
@@ -158,6 +185,8 @@ class Generator:
         os.makedirs(self.controllersDirs)
         self.servicesDirs = self.__srcdir + '/' + Project.Services_folder
         os.makedirs(self.servicesDirs)
+        self.configDirs = self.__srcdir + '/' + Project.Config_folder
+        os.makedirs(self.configDirs)
         # Generate
         Helper.logger.debug("> Generating Base entity file ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.BaseEntity_Template])
@@ -193,6 +222,14 @@ class Generator:
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.StatusControl_Template])
         output = template.render(package=self.__project.package + "." + Project.Controllers_folder).encode("utf-8")
         f = open(self.controllersDirs + '/' + Generator.StatusControl_Template, 'wb')
+        f.write(output)
+        f.close()
+        # Generate
+        Helper.logger.debug("> Generating Constants config file .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.Constants_Template])
+        output = template.render(package=self.__project.package + "." + Project.Config_folder,
+                                 key=Helper.randomString(10)).encode("utf-8")
+        f = open(self.configDirs + '/' + Generator.Constants_Template, 'wb')
         f.write(output)
         f.close()
 
@@ -310,14 +347,6 @@ class Generator:
         f.write(output)
         f.close()
         # Generate
-        Helper.logger.debug("> Generating Constants file .")
-        template = Environment(loader=BaseLoader()).from_string(templates[Generator.Constants_Template])
-        output = template.render(package=self.__project.package + "." + Project.Security_folder,
-                                 key=Helper.randomString(10)).encode("utf-8")
-        f = open(self.securityDirs + '/' + Generator.Constants_Template, 'wb')
-        f.write(output)
-        f.close()
-        # Generate
         Helper.logger.debug("> Generating WebSecurityConfig file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.WebSecurityConfig_Template])
         output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
@@ -327,7 +356,8 @@ class Generator:
         # Generate
         Helper.logger.debug("> Generating TokenProvider file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.TokenProvider_Template])
-        output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
+        output = template.render(package=self.__project.package + "." + Project.Security_folder,
+                                packageConstants=self.__project.package + "." + Project.Config_folder).encode("utf-8")
         f = open(self.securityDirs + '/' + Generator.TokenProvider_Template, 'wb')
         f.write(output)
         f.close()
@@ -348,19 +378,12 @@ class Generator:
         # Generate
         Helper.logger.debug("> Generating JwtAuthenticationFilter file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.JwtAuthenticationFilter_Template])
-        output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
+        output = template.render(package=self.__project.package + "." + Project.Security_folder,
+                                packageConstants=self.__project.package + "." + Project.Config_folder).encode("utf-8")
         f = open(self.securityDirs + '/' + Generator.JwtAuthenticationFilter_Template, 'wb')
         f.write(output)
         f.close()
-        # Generate
-        Helper.logger.debug("> Generating UserInfoService file .")
-        template = Environment(loader=BaseLoader()).from_string(templates[Generator.UserInfoService_Template])
-        output = template.render(package=self.__project.package + "." + Project.Security_folder,
-                                 Entitypackage=self.__project.package + "." + Project.Entities_folder + ".User",
-                                 Repopackage=self.__project.package + "." + Project.Repositories_folder+".User" + Project.Repository_prepend).encode("utf-8")
-        f = open(self.securityDirs + '/' + Generator.UserInfoService_Template, 'wb')
-        f.write(output)
-        f.close()
+
 
     """ To string type method """
 
