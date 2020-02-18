@@ -52,6 +52,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                                                 "/v2/api-docs*",
                                                 "/status/*",
                                                 "/api/auth/*",
+                                                "/h2-console/**",
                                                 "api/user/new").permitAll()
             .anyRequest().authenticated()
             .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)

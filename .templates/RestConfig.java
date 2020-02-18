@@ -20,6 +20,7 @@ public class RestConfig {
         config.addAllowedOrigin("*");
         config.setMaxAge(Long.valueOf(3600));
         config.addAllowedHeader("*");
+        config.addAllowedHeader("X-Frame-Options");
         config.addAllowedHeader("X-Requested-With");
         config.addAllowedHeader("Content-Type");
         config.addAllowedHeader("Authorization");

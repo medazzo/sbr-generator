@@ -1,11 +1,4 @@
 spring:
-{%- if security  %}
-  security:
-    user:
-      name: "sergey"
-      password: "sergey"
-      roles: "admin"
-{%- endif  %}
   profiles:
     active: "dev"
   thymeleaf:
@@ -39,6 +32,12 @@ spring:
   jackson:
     serialization:
       FAIL_ON_EMPTY_BEANS: False
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+      hibernate: DEBUG
 ---
 
 spring:

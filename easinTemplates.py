@@ -8,11 +8,18 @@ templates = {
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+{%- if security  %}
+import org.springframework.context.annotation.Bean;
+import {{EntitypackageUser}};
+import {{ServicepackageUser}};
+import {{RepositorypackageUser}};
+import org.springframework.beans.factory.annotation.Autowired;
+import {{SecurityPackage}}.AuthoritiesConstants;
+{%- endif  %}
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
+@SpringBootApplication
 public class Application {
 
     public static final String EMAIL_TEMPLATE_ENCODING = "UTF-8";
@@ -21,16 +28,34 @@ public class Application {
         SpringApplication.run(Application.class, args);
     }
 
+{%- if security  %}
+    @Autowired
+    UserRepository repo;
+
+    @Bean
+    public CommandLineRunner demoData() {
+        return args -> {
+            User u = new User();
+            u.setEmail("admin@admin.com");
+            u.setLogin("admin");
+            u.setPassword("admin");
+            u.setFirstName("Mr admin");
+            u.setLastName("admin com");
+            u.setActivated(true);
+            u.setLangKey("EN");
+            u.setMainRole(AuthoritiesConstants.ADMIN);
+            try {
+                repo.save(u);
+            } catch (Exception e) {
+                log.warn("Admin user seems to be already created   .. "
+                        + e.getMessage());
+            }
+        };
+    }
+{%- endif  %}
 
 } """,
     'application.yaml' :  """spring:
-{%- if security  %}
-  security:
-    user:
-      name: "sergey"
-      password: "sergey"
-      roles: "admin"
-{%- endif  %}
   profiles:
     active: "dev"
   thymeleaf:
@@ -64,6 +89,12 @@ spring:
   jackson:
     serialization:
       FAIL_ON_EMPTY_BEANS: False
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+      hibernate: DEBUG
 ---
 
 spring:
@@ -1446,8 +1477,8 @@ import java.util.List;
 
 public interface {{entityName}}Repository extends JpaRepository<{{entityName}}, String> {
 {%- if entityName == "User"  %}
-   @Query("select u from User u where u.Email = ?1")
-   User findByEmail(String Email);
+   @Query("select u from User u where u.email = ?1")
+   User findByEmail(String email);
 {%- endif  %}
 	public List<{{entityName}}> findByName(String name);
 } """,
@@ -1559,6 +1590,7 @@ public class RestConfig {
         config.addAllowedOrigin("*");
         config.setMaxAge(Long.valueOf(3600));
         config.addAllowedHeader("*");
+        config.addAllowedHeader("X-Frame-Options");
         config.addAllowedHeader("X-Requested-With");
         config.addAllowedHeader("Content-Type");
         config.addAllowedHeader("Authorization");
@@ -1843,68 +1875,69 @@ public class User extends BaseEntity {
     @ApiModelProperty(hidden = true)
     protected String Id;
 
-
 {%- for field in entity.fields | sort(attribute='name') %}
+{%- if field.name|upper not in ['LOGIN','PASSWORD','FIRSTNAME','LASTNAME','EMAIL','ACTIVATED','LANGKEY','IMAGEURL','ACTIVATIONKEY','RESETKEY','RESETDATE','MAINROLE'] %}
     /** {{field.comment}} */
     @ApiModelProperty(value = " {{field.comment}} ")
 {%- for annot in field.annotations  %}
     {{annot}}
 {%- endfor %}
     private {{field.type}} {{field.name}};
+{% endif %}
 {% endfor %}
 
-@NotNull
- @Pattern(regexp = Constants.LOGIN_REGEX)
- @Size(min = 1, max = 50)
- @Column(length = 50, unique = true, nullable = false)
- private String login;
+    @NotNull
+    @Pattern(regexp = Constants.LOGIN_REGEX)
+    @Size(min = 1, max = 50)
+    @Column(length = 50, unique = true, nullable = false)
+    private String login;
 
- @JsonIgnore
- @NotNull
- @Size(min = 60, max = 60)
- @Column(name = "password_hash", length = 60, nullable = false)
- private String password;
+    @JsonIgnore
+    @NotNull
+    @Size(min = 60, max = 60)
+    @Column(name = "password_hash", length = 60, nullable = false)
+    private String password;
 
- @Size(max = 50)
- @Column(name = "first_name", length = 50)
- private String firstName;
+    @Size(max = 50)
+    @Column(name = "first_name", length = 50)
+    private String firstName;
 
- @Size(max = 50)
- @Column(name = "last_name", length = 50)
- private String lastName;
+    @Size(max = 50)
+    @Column(name = "last_name", length = 50)
+    private String lastName;
 
- @Email
- @Size(min = 5, max = 254)
- @Column(length = 254, unique = true)
- private String Email;
+    @Email
+    @Size(min = 5, max = 254)
+    @Column(length = 254, unique = true)
+    private String email;
 
- @NotNull
- @Column(nullable = false)
- private boolean activated = false;
+    @NotNull
+    @Column(nullable = false)
+    private boolean activated = false;
 
- @Size(min = 2, max = 10)
- @Column(name = "lang_key", length = 10)
- private String langKey;
+    @Size(min = 2, max = 10)
+    @Column(name = "lang_key", length = 10)
+    private String langKey;
 
- @Size(max = 256)
- @Column(name = "image_url", length = 256)
- private String imageUrl;
+    @Size(max = 256)
+    @Column(name = "image_url", length = 256)
+    private String imageUrl;
 
- @Size(max = 20)
- @Column(name = "activation_key", length = 20)
- @JsonIgnore
- private String activationKey;
+    @Size(max = 20)
+    @Column(name = "activation_key", length = 20)
+    @JsonIgnore
+    private String activationKey;
 
- @Size(max = 20)
- @Column(name = "reset_key", length = 20)
- @JsonIgnore
- private String resetKey;
+    @Size(max = 20)
+    @Column(name = "reset_key", length = 20)
+    @JsonIgnore
+    private String resetKey;
 
- @Column(name = "reset_date")
- private Instant resetDate = null;
+    @Column(name = "reset_date")
+    private Instant resetDate = null;
 
- @JsonIgnore
- private String mainRole;
+    @JsonIgnore
+    private String mainRole;
 
     /**
     * default constructor
@@ -2109,6 +2142,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                                                 "/v2/api-docs*",
                                                 "/status/*",
                                                 "/api/auth/*",
+                                                "/h2-console/**",
                                                 "api/user/new").permitAll()
             .anyRequest().authenticated()
             .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)

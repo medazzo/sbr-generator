@@ -27,7 +27,7 @@ entities:
   - name: User
     comment: Class representing the User parameters
     fields:
-      - name: mail
+      - name: email
         type: String
         comment: the official Mail of the User
         annotations:

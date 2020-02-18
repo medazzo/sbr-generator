@@ -150,7 +150,7 @@ class Generator:
             f.close()
             if ent.name == "User":
                 # Generate and overwrite the user entity, repositories and service
-                Helper.logger.debug("> Generating USer Classe  {} .".format(ent.name))
+                Helper.logger.debug("> Generating User Class  {} .".format(ent.name))
                 templateUserEntity = Environment(loader=BaseLoader()).from_string(templates[Generator.UserEntity_Template])
                 output = templateUserEntity.render( package=self.__project.package + "." + Project.Entities_folder,
                                                     configConstants=self.__project.package + "." + Project.Config_folder ,
@@ -160,7 +160,7 @@ class Generator:
                 f.close()
                 if self.security:
                     # Generate and overwrite the user service
-                    Helper.logger.debug("> Generating USer  Service file  for security profile.")
+                    Helper.logger.debug("> Generating User  Service file  for security profile.")
                     template = Environment(loader=BaseLoader()).from_string(templates[Generator.UserService_Template])
                     output = template.render(projectPackage=self.__project.package,
                                              package=self.__project.package + "." + Project.Services_folder,
@@ -265,7 +265,13 @@ class Generator:
         # Generate some java files
         Helper.logger.debug("> Generating application  files ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.application_Template])
-        output = template.render(package=self.__project.package).encode("utf-8")
+        output = template.render(package=self.__project.package,
+                                 SecurityPackage=self.__project.package + "." + Project.Security_folder,
+                                 security=self.security,
+                                 EntitypackageUser=self.__project.package + "." + Project.Entities_folder + ".User",
+                                 RepositorypackageUser=self.__project.package + "." + Project.Repositories_folder + ".User" + Project.Repository_prepend,
+                                 ServicepackageUser=self.__project.package + "." + Project.Services_folder + ".User" + Project.Service_prepend
+                                 ).encode("utf-8")
         f = open(self.__srcdir + '/' + Generator.application_Template, 'wb')
         f.write(output)
         f.close()
@@ -353,7 +359,7 @@ class Generator:
         # Generate
         Helper.logger.debug("> Generating WebSecurityConfig file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.WebSecurityConfig_Template])
-        output = template.render(package=self.__project.package + "." + Project.Security_folder,project=self.__project).encode("utf-8")
+        output = template.render(package=self.__project.package + "." + Project.Security_folder, project=self.__project).encode("utf-8")
         f = open(self.securityDirs + '/' + Generator.WebSecurityConfig_Template, 'wb')
         f.write(output)
         f.close()
@@ -391,7 +397,7 @@ class Generator:
         Helper.logger.debug("> Generating Authentication Controller .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.AuthenticationController_Template])        
         output = template.render(package=self.__project.package + "." + Project.Controllers_folder,
-                                                EntitypackageUser=self.__project.package + "." + Project.Entities_folder + ".User"  ,
+                                                EntitypackageUser=self.__project.package + "." + Project.Entities_folder + ".User",
                                                 Securitypackage=self.__project.package + "." +  Project.Security_folder,
                                                 ServicepackageUser=self.__project.package + "." + Project.Services_folder + ".User" + Project.Service_prepend,
                                                 mapping=Project.ApiPrefix + "auth").encode("utf-8")
