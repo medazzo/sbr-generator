@@ -27,6 +27,7 @@ class Generator:
     Entity_Template = "entity.java"
     EntityRepo_Template = "Repository.java"
     Controller_Template = "controller.java"
+    AuthenticationController_Template= "AuthenticationController.java"
     log4j2_Template = "log4j2.xml"
     pom_Template = "pom.xml"
     properties_Template = "application.yaml"
@@ -54,7 +55,9 @@ class Generator:
     JwtAuthenticationFilter_Template = "JwtAuthenticationFilter.java"
     UserService_Template = "UserService.java"
     UserEntity_Template = "User.java"
-    Template_Dir = "templates"
+    AuthToken_Template = "AuthToken.java"
+    LoginUser_Template = "LoginUser.java"
+    Template_Dir = ".templates"
 
     def __init__(self, outputDir=None, verbose=False, tests=False, security=True, project=None, entities=list(),
                  conf=None):
@@ -133,7 +136,6 @@ class Generator:
             f = open(self.controllersDirs + '/' + ent.name + Project.Controller_prepend + '.java', 'wb')
             f.write(output)
             f.close()
-
             # Generate
             Helper.logger.debug("> Generating Service for Entity {} .".format(ent.name))
             output = self.templateService.render(projectPackage=self.__project.package,
@@ -338,6 +340,8 @@ class Generator:
     def __GenerateSecurity(self):
         self.securityDirs = self.__srcdir + '/' + Project.Security_folder
         os.makedirs(self.securityDirs)
+        self.securityApiDirs = self.__srcdir + '/' + Project.Security_folder + '/' + Project.Security_api_folder
+        os.makedirs(self.securityApiDirs)
         # Generate
         Helper.logger.debug("> Generating Authorities file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.Authorities_Template])
@@ -349,7 +353,7 @@ class Generator:
         # Generate
         Helper.logger.debug("> Generating WebSecurityConfig file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.WebSecurityConfig_Template])
-        output = template.render(package=self.__project.package + "." + Project.Security_folder).encode("utf-8")
+        output = template.render(package=self.__project.package + "." + Project.Security_folder,project=self.__project).encode("utf-8")
         f = open(self.securityDirs + '/' + Generator.WebSecurityConfig_Template, 'wb')
         f.write(output)
         f.close()
@@ -383,6 +387,31 @@ class Generator:
         f = open(self.securityDirs + '/' + Generator.JwtAuthenticationFilter_Template, 'wb')
         f.write(output)
         f.close()
+        # Generate Auth controller 
+        Helper.logger.debug("> Generating Authentication Controller .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.AuthenticationController_Template])        
+        output = template.render(package=self.__project.package + "." + Project.Controllers_folder,
+                                                EntitypackageUser=self.__project.package + "." + Project.Entities_folder + ".User"  ,
+                                                Securitypackage=self.__project.package + "." +  Project.Security_folder,
+                                                ServicepackageUser=self.__project.package + "." + Project.Services_folder + ".User" + Project.Service_prepend,
+                                                mapping=Project.ApiPrefix + "auth").encode("utf-8")
+        f = open(self.controllersDirs + '/' + Generator.AuthenticationController_Template , 'wb')
+        f.write(output)
+        f.close()     
+        # Generate Security Api files
+        Helper.logger.debug("> Generating Security Api classe Auth token .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.AuthToken_Template])        
+        output = template.render(package=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder,
+                                                EntitypackageUser=self.__project.package + "." + Project.Entities_folder + ".User"  ).encode("utf-8")
+        f = open(self.securityApiDirs + '/' + Generator.AuthToken_Template , 'wb')
+        f.write(output)
+        f.close()              
+        Helper.logger.debug("> Generating Security Api classe Login User .")
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.LoginUser_Template])        
+        output = template.render(package=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder).encode("utf-8")
+        f = open(self.securityApiDirs + '/' + Generator.LoginUser_Template , 'wb')
+        f.write(output)
+        f.close()              
 
 
     """ To string type method """

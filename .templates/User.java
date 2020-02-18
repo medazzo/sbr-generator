@@ -64,7 +64,7 @@ public class User extends BaseEntity {
  @Email
  @Size(min = 5, max = 254)
  @Column(length = 254, unique = true)
- private String email;
+ private String Email;
 
  @NotNull
  @Column(nullable = false)

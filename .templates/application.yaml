@@ -1,12 +1,20 @@
 spring:
+{%- if security  %}
+  security:
+    user:
+      name: "sergey"
+      password: "sergey"
+      roles: "admin"
+{%- endif  %}
   profiles:
     active: "dev"
+  thymeleaf:
+    prefix: classpath:/templates/
   main:
     banner-mode: "off"
   output:
     ansi:
       enabled: DETECT
-
 server:
   servlet:
     context-path: {{project.restPath}}/{{project.version}}

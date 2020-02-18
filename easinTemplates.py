@@ -8,10 +8,11 @@ templates = {
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@SpringBootApplication
+@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 public class Application {
 
     public static final String EMAIL_TEMPLATE_ENCODING = "UTF-8";
@@ -23,14 +24,22 @@ public class Application {
 
 } """,
     'application.yaml' :  """spring:
+{%- if security  %}
+  security:
+    user:
+      name: "sergey"
+      password: "sergey"
+      roles: "admin"
+{%- endif  %}
   profiles:
     active: "dev"
+  thymeleaf:
+    prefix: classpath:/templates/
   main:
     banner-mode: "off"
   output:
     ansi:
       enabled: DETECT
-
 server:
   servlet:
     context-path: {{project.restPath}}/{{project.version}}
@@ -97,6 +106,52 @@ spring:
     jackson:
       serialization:
         FAIL_ON_EMPTY_BEANS: False """,
+    'AuthenticationController.java' :  """package {{package}};
+
+import {{Securitypackage}}.TokenProvider;
+import {{EntitypackageUser}};
+import {{Securitypackage}}.api.AuthToken;
+import {{Securitypackage}}.api.LoginUser;
+import {{ServicepackageUser}};
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RestController
+@RequestMapping("{{mapping}}")
+public class AuthenticationController {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private TokenProvider jwtTokenUtil;
+
+    @Autowired
+    private UserService userService;
+
+    @RequestMapping(value = "/token", method = RequestMethod.POST)
+    public ResponseEntity<?> register(@RequestBody LoginUser loginUser) throws AuthenticationException {
+
+        final Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginUser.getEmail(),
+                        loginUser.getPassword()
+                )
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        final String token = jwtTokenUtil.generateToken(authentication);
+
+        User user = userService.GetUserByUsername(authentication.getName());
+        return ResponseEntity.ok(new AuthToken(token, user));
+    }
+} """,
     'AuthoritiesConstants.java' :  """package {{package}};
 
 /**
@@ -112,6 +167,26 @@ public final class AuthoritiesConstants {
 {% endfor %}
 
 } """,
+    'AuthToken.java' :  """package {{package}};
+
+import {{EntitypackageUser}};
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class AuthToken {
+
+    private String token;
+    private User user;
+
+} """,
     'BaseEntity.java' :  """package {{package}};
 
 import java.io.Serializable;
@@ -947,6 +1022,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     </Loggers>
 
 </Configuration> """,
+    'LoginUser.java' :  """package {{package}};
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class LoginUser {
+
+    private String email;
+    private String password;
+} """,
     'MyErrorController.java' :  """package {{package}};
 
 import org.springframework.http.*;
@@ -1092,6 +1185,10 @@ public class MyErrorController implements ErrorController {
            <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
         </dependency>
         {%- endif %}
         <dependency>
@@ -1569,7 +1666,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-@RequestMapping(path = "/api/status")
+@RequestMapping(path = "/status")
 public class StatusController {
 
     @RequestMapping(value = "/version", method = RequestMethod.GET, produces = "application/json")
@@ -1608,7 +1705,7 @@ public class StatusController {
 } """,
     'SwaggerConfiguration.java' :  """package {{project.package}};
 
-import static springfox.documentation.builders.PathSelectors.regex;
+import static springfox.documentation.builders.PathSelectors.ant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -1624,7 +1721,7 @@ public class SwaggerConfiguration {
         return new Docket(DocumentationType.SWAGGER_2)  
           .select()                                  
           .apis(RequestHandlerSelectors.basePackage("{{project.package}}"))
-          .paths(regex("{{ApiPrefix}}.*"))
+          .paths(ant("{{ApiPrefix}}**"))
           .build();                                           
     }
 } """,
@@ -1779,7 +1876,7 @@ public class User extends BaseEntity {
  @Email
  @Size(min = 5, max = 254)
  @Column(length = 254, unique = true)
- private String email;
+ private String Email;
 
  @NotNull
  @Column(nullable = false)
@@ -2005,13 +2102,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors()
-                .and()
-                .csrf().disable()
-                .authorizeRequests().antMatchers("/status/*", "/auth/*", "/user/new", "/user/create").permitAll()
-                .anyRequest().authenticated()
-                .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
-                .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
+            .and()
+            .csrf().disable()
+            .authorizeRequests().antMatchers(   "/swagger-ui.html*",                                                
+                                                "/webjars/springfox-swagger-ui/**",
+                                                "/v2/api-docs*",
+                                                "/status/*",
+                                                "/api/auth/*",
+                                                "api/user/new").permitAll()
+            .anyRequest().authenticated()
+            .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
+            .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    
         http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
     }
 

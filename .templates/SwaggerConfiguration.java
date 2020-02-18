@@ -1,6 +1,6 @@
 package {{project.package}};
 
-import static springfox.documentation.builders.PathSelectors.regex;
+import static springfox.documentation.builders.PathSelectors.ant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.RequestHandlerSelectors;
@@ -16,7 +16,7 @@ public class SwaggerConfiguration {
         return new Docket(DocumentationType.SWAGGER_2)  
           .select()                                  
           .apis(RequestHandlerSelectors.basePackage("{{project.package}}"))
-          .paths(regex("{{ApiPrefix}}.*"))
+          .paths(ant("{{ApiPrefix}}**"))
           .build();                                           
     }
 }

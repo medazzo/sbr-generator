@@ -49,6 +49,7 @@ class Project:
 
     Config_folder  = "config"
     Security_folder = "security"
+    Security_api_folder = "api"
     Entities_folder = "entities"
     Repositories_folder = "repositories"
     Exceptions_folder = "exceptions"

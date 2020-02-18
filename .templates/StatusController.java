@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-@RequestMapping(path = "/api/status")
+@RequestMapping(path = "/status")
 public class StatusController {
 
     @RequestMapping(value = "/version", method = RequestMethod.GET, produces = "application/json")
