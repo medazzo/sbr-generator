@@ -1,5 +1,6 @@
 package {{package}};
 
+import {{Apppackage}};
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import lombok.extern.slf4j.Slf4j;

@@ -19,7 +19,7 @@
     <packaging>war</packaging>
     <properties>
         <java.version>11</java.version>
-        <start-class>{{pom.package}}.Application</start-class>
+        <start-class>{{startClass}}</start-class>
     </properties>
     <profiles>
         <profile>
