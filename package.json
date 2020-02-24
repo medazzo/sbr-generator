@@ -6,7 +6,9 @@
     "scripts": {
         "buildTemplates": "./generateTemplateFile.sh",
         "example": "python easinGenerator.py  -c examples/config.yaml",
-        "test": "npm run buildTemplates && npm run example"
+        "examplefull": "python easinGenerator.py  -c examples/config.yaml -t -v ",
+        "test": "npm run buildTemplates && npm run examplefull",
+        "testfull": "npm run buildTemplates && npm run example"
     },
     "repository": {
         "type": "git",
