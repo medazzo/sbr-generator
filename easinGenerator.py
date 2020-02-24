@@ -153,7 +153,7 @@ class Generator:
                 Helper.logger.debug("> Generating User Class  {} .".format(ent.name))
                 templateUserEntity = Environment(loader=BaseLoader()).from_string(templates[Generator.UserEntity_Template])
                 output = templateUserEntity.render( package=self.__project.package + "." + Project.Entities_folder,
-                                                    configConstants=self.__project.package + "." + Project.Config_folder ,
+                                                    configConstants=self.__project.package + "." + Project.App_folder ,
                                                     entity=ent).encode("utf-8")
                 f = open(self.entityDirs + '/' + ent.name + '.java', 'wb')
                 f.write(output)
@@ -187,8 +187,8 @@ class Generator:
         os.makedirs(self.controllersDirs)
         self.servicesDirs = self.__srcdir + '/' + Project.Services_folder
         os.makedirs(self.servicesDirs)
-        self.configDirs = self.__srcdir + '/' + Project.Config_folder
-        os.makedirs(self.configDirs)
+        self.appDirs = self.__srcdir + '/' + Project.App_folder
+        os.makedirs(self.appDirs)
         # Generate
         Helper.logger.debug("> Generating Base entity file ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.BaseEntity_Template])
@@ -229,9 +229,9 @@ class Generator:
         # Generate
         Helper.logger.debug("> Generating Constants config file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.Constants_Template])
-        output = template.render(package=self.__project.package + "." + Project.Config_folder,
+        output = template.render(package=self.__project.package + "." + Project.App_folder,
                                  key=Helper.randomString(10)).encode("utf-8")
-        f = open(self.configDirs + '/' + Generator.Constants_Template, 'wb')
+        f = open(self.appDirs + '/' + Generator.Constants_Template, 'wb')
         f.write(output)
         f.close()
 
@@ -265,35 +265,37 @@ class Generator:
         # Generate some java files
         Helper.logger.debug("> Generating application  files ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.application_Template])
-        output = template.render(package=self.__project.package,
+        output = template.render(package=self.__project.package + '.' + Project.App_folder,
                                  SecurityPackage=self.__project.package + "." + Project.Security_folder,
                                  security=self.security,
                                  EntitypackageUser=self.__project.package + "." + Project.Entities_folder + ".User",
                                  RepositorypackageUser=self.__project.package + "." + Project.Repositories_folder + ".User" + Project.Repository_prepend,
                                  ServicepackageUser=self.__project.package + "." + Project.Services_folder + ".User" + Project.Service_prepend
                                  ).encode("utf-8")
-        f = open(self.__srcdir + '/' + Generator.application_Template, 'wb')
+        f = open(self.appDirs + '/' + Generator.application_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
         Helper.logger.debug("> Generating Swagger Config files ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.SwaggerConfig_Template])
-        output = template.render(ApiPrefix=Project.ApiPrefix, project=self.__project).encode("utf-8")
-        f = open(self.__srcdir + '/' + Generator.SwaggerConfig_Template, 'wb')
+        output = template.render(package=self.__project.package + '.' + Project.App_folder,
+                                 ApiPrefix=Project.ApiPrefix, 
+                                 project=self.__project).encode("utf-8")
+        f = open(self.appDirs + '/' + Generator.SwaggerConfig_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
         Helper.logger.debug("> Generating Logging Filter files ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.LoggingFilter_Template])
-        output = template.render(package=self.__project.package).encode("utf-8")
-        f = open(self.__srcdir + '/' + Generator.LoggingFilter_Template, 'wb')
+        output = template.render(package=self.__project.package+ '.' + Project.App_folder).encode("utf-8")
+        f = open(self.appDirs + '/' + Generator.LoggingFilter_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
         Helper.logger.debug("> Generating Web Initializer files ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.webInitializer_Template])
-        output = template.render(package=self.__project.package).encode("utf-8")
-        f = open(self.__srcdir + '/' + Generator.webInitializer_Template, 'wb')
+        output = template.render(package=self.__project.package+ '.' + Project.App_folder).encode("utf-8")
+        f = open(self.appDirs + '/' + Generator.webInitializer_Template, 'wb')
         f.write(output)
         f.close()
         # Generate
@@ -367,7 +369,7 @@ class Generator:
         Helper.logger.debug("> Generating TokenProvider file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.TokenProvider_Template])
         output = template.render(package=self.__project.package + "." + Project.Security_folder,
-                                packageConstants=self.__project.package + "." + Project.Config_folder).encode("utf-8")
+                                packageConstants=self.__project.package + "." + Project.App_folder).encode("utf-8")
         f = open(self.securityDirs + '/' + Generator.TokenProvider_Template, 'wb')
         f.write(output)
         f.close()
@@ -389,7 +391,7 @@ class Generator:
         Helper.logger.debug("> Generating JwtAuthenticationFilter file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.JwtAuthenticationFilter_Template])
         output = template.render(package=self.__project.package + "." + Project.Security_folder,
-                                packageConstants=self.__project.package + "." + Project.Config_folder).encode("utf-8")
+                                packageConstants=self.__project.package + "." + Project.App_folder).encode("utf-8")
         f = open(self.securityDirs + '/' + Generator.JwtAuthenticationFilter_Template, 'wb')
         f.write(output)
         f.close()

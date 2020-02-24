@@ -1246,6 +1246,7 @@ public class MyErrorController implements ErrorController {
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -1735,7 +1736,7 @@ public class StatusController {
         return ll;
     }
 } """,
-    'SwaggerConfiguration.java' :  """package {{project.package}};
+    'SwaggerConfiguration.java' :  """package {{package}};
 
 import static springfox.documentation.builders.PathSelectors.ant;
 import org.springframework.context.annotation.Bean;

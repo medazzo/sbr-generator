@@ -1,4 +1,4 @@
-package {{project.package}};
+package {{package}};
 
 import static springfox.documentation.builders.PathSelectors.ant;
 import org.springframework.context.annotation.Bean;
