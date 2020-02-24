@@ -240,55 +240,19 @@ public abstract class BaseEntity implements Serializable {
 } """,
     'CommandInitializer.java' :  """package {{package}};
 
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-{%- if security  %}
-import org.springframework.context.annotation.Bean;
-import {{EntitypackageUser}};
-import {{ServicepackageUser}};
-import org.springframework.beans.factory.annotation.Autowired;
-import {{SecurityPackage}}.AuthoritiesConstants;
-{%- endif  %}
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
 class CommandInitializer implements CommandLineRunner {
 
-{%- if security  %}
-    @Autowired
-    private UserService service;
-{%- endif  %}
-
     @Override
     public void run(String... args) throws Exception {
         log.warn("Preparing some stuff to do before run applications .. ");
-{%- if security  %}
-        User u = new User();
-        u.setEmail("admin@admin.com");
-        u.setLogin("admin");
-        u.setPassword("admin");
-        u.setFirstName("Mr admin");
-        u.setLastName("admin com");
-        u.setActivated(true);
-        u.setLangKey("EN");
-        u.setMainRole(AuthoritiesConstants.ADMIN);
-
-        try {
-            service.create(u);
-            // check it ?
-            service.getAll().forEach((us) -> {
-                    log.info("{}", us);
-                });
-        } catch (Exception e) {
-            log.warn("Admin user seems to be already created   .. "
-                    + e.getMessage());
-        }
     }
-{%- endif  %}
-
 } """,
     'Constants.java' :  """package {{package}};
 
@@ -810,6 +774,11 @@ public class {{entityName}}CrudUnitTest {
         }
     }
 } """,
+    'data.sql' :  """/* Generated Admin user with mail='{{mail}}' and password='{{passwordclear}}' and login='{{login}}'*/ 
+INSERT INTO USER ( ACTIVATED , ACTIVATION_KEY , CREATED_AT , EMAIL , FIRST_NAME , ID , IMAGE_URL , LANG_KEY , LAST_NAME , LOGIN , MAIN_ROLE , NAME , PASSWORD_HASH , PHONE , RESET_DATE , RESET_KEY , UPDATED_AT , VERSION ) VALUES (TRUE, 'ACT-KEY-NOT-NEEDED', NOW(), '{{mail}}', ' Me Admin','{{uuid}}','IMAGE_URL-NOT-NEEDED', 'EN', 'Very strong', '{{login}}','ROLE_ADMIN','Me Strong Admin', '{{password}}', '0022554411887',NOW() , 'RESET_KEY-NOT-NEEDED' , NOW() , 0);
+
+/* Generated USER with mail='{{umail}}' and password='{{upasswordclear}}' and login='{{ulogin}}'*/ 
+INSERT INTO USER ( ACTIVATED , ACTIVATION_KEY , CREATED_AT , EMAIL , FIRST_NAME , ID , IMAGE_URL , LANG_KEY , LAST_NAME , LOGIN , MAIN_ROLE , NAME , PASSWORD_HASH , PHONE , RESET_DATE , RESET_KEY , UPDATED_AT , VERSION ) VALUES (TRUE, 'ACT-KEY-NOT-NEEDED', NOW(), '{{umail}}', ' Me User','{{uuuid}}','IMAGE_URL-NOT-NEEDED', 'EN', 'Very Helpful', '{{ulogin}}','ROLE_USER','Me Useful User', '{{upassword}}', '0022554411887',NOW() , 'RESET_KEY-NOT-NEEDED' , NOW() , 0); """,
     'entity.java' :  """package {{package}} ;
 
 import javax.persistence.*;
@@ -1915,7 +1884,7 @@ public class User extends BaseEntity {
 
     @JsonIgnore
     @NotNull
-    @Size(min = 60, max = 60)
+    @Size(min = 128, max = 128)
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
 
