@@ -14,8 +14,7 @@ from easinModels import Project, Helper
 import pprint, os, shutil
 import jinja2
 import uuid 
-import hashlib
-import binascii
+import bcrypt
 from jinja2 import Environment, BaseLoader
 from easinTemplates import templates
 
@@ -179,7 +178,7 @@ class Generator:
 
     def __GenerateBase(self):
         # key used as salt for password
-        self.key = Helper.randomString(10)
+        self.key = bcrypt.gensalt()
         # Preparing templates
         self.templateEntity = Environment(loader=BaseLoader()).from_string(templates[Generator.Entity_Template])
         self.templateRepo = Environment(loader=BaseLoader()).from_string(templates[Generator.EntityRepo_Template])
@@ -237,7 +236,7 @@ class Generator:
         Helper.logger.debug("> Generating Constants config file .")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.Constants_Template])
         output = template.render(package=self.__project.package + "." + Project.Conf_folder,
-                                 key=self.key).encode("utf-8")
+                                 key=self.key.decode()).encode("utf-8")
         f = open(self.appDirs + '/' + Generator.Constants_Template, 'wb')
         f.write(output)
         f.close()
@@ -436,16 +435,15 @@ class Generator:
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.Data_Template]) 
         passwd =  Helper.randomString(5)
         upasswd =  Helper.randomString(5)    
-        pwdhash = hashlib.pbkdf2_hmac('sha512', passwd.encode('utf-8'), self.key.encode() , 100000)
-        pwdhash = binascii.hexlify(pwdhash).decode("utf-8")
-        upwdhash = hashlib.pbkdf2_hmac('sha512', upasswd.encode('utf-8'), self.key.encode() , 100000)
-        upwdhash = binascii.hexlify(upwdhash).decode("utf-8")
+        # Usinb bcryt for passwords
+        pwdhash = bcrypt.hashpw(passwd.encode(), self.key )
+        upwdhash = bcrypt.hashpw(upasswd.encode(), self.key )
         mail_prefix = Helper.randomString(5)
         umail_prefix = Helper.randomString(5)
         output = template.render(   uuid=uuid.uuid1() ,
                                     uuuid=uuid.uuid1() ,
-                                    password=pwdhash, 
-                                    upassword=upwdhash, 
+                                    password=pwdhash.decode(), 
+                                    upassword=upwdhash.decode(), 
                                     passwordclear=passwd,
                                     upasswordclear=upasswd,
                                     login=mail_prefix+"Admin",
