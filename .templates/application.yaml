@@ -60,6 +60,13 @@ spring:
     jackson:
       serialization:
         FAIL_ON_EMPTY_BEANS: False
+debug: true
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+      hibernate: DEBUG
 ---
 
 spring:

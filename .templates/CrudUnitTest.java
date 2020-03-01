@@ -53,15 +53,12 @@ public class {{entityName}}CrudUnitTest {
     @Autowired
     private {{entityName}}Service service;
     private AuthToken auth ;
-{%- for field in entity.fields  %}{%- if field.foreignKey  %}
-    @Autowired
-    private {{field.foreignEntity}}Service fk{{field.foreignEntity}}service;
-{%-endif %} {% endfor %}     
     Map<String, Object> hm = new HashMap<>();
 
     {% if security  %}
     public  AuthToken DoUserAuthentication() throws Exception {        
         String body = "{\\\"email\\\":\\\"{{uemail}}\\\",\\\"password\\\":\\\"{{upassword}}\\\"}";
+        log.debug(" Try to authenticate  user '{{uemail}}'' with his password '{{upassword}}'.");
         MvcResult result = mockMvc.perform(
                     post("/api/auth/token")
                     .content(body))
@@ -70,11 +67,13 @@ public class {{entityName}}CrudUnitTest {
         // Verify Getted {{entityName}} using Service
         ObjectMapper mapper = new ObjectMapper();
         AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
+        log.debug(" >>> User '{{uemail}}'' has been authenticated , his tomen is  '"+ authGetted.getToken() +"'.");
         return authGetted;
     }
 
     public  AuthToken DoAdminAuthentication() throws Exception {                
         String body = "{\\\"email\\\":\\\"{{aemail}}\\\", \\\"password\\\":\\\"{{apassword}}\\\"}";
+        log.debug(" Try to authenticate  Admin '{{aemail}}'' with his password '{{apassword}}'.");
         MvcResult result = mockMvc.perform(
                     post("/api/auth/token")
                     .content(body))
@@ -83,6 +82,7 @@ public class {{entityName}}CrudUnitTest {
         // Verify Getted {{entityName}} using Service
         ObjectMapper mapper = new ObjectMapper();
         AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
+        log.debug(" >>> Admin '{{uemail}}'' has been authenticated , his tomen is  '"+ authGetted.getToken() +"'.");
         return authGetted;
     }
 
@@ -93,35 +93,37 @@ public class {{entityName}}CrudUnitTest {
                     post("/v2/token")
                     .content(body))
                 .andExpect(status().isForbidden()).andReturn();
+        log.debug(" Try to authenticate  non Existant User !.");
     }
     {%- endif  %}
 
     @Test
     public void {{entityName}}CreateTest() throws Exception {
+        log.debug(" in {{entityName}}  CreateTest !.");
         {%- if security  %}                 
         auth = DoAdminAuthentication() ;
         {%- endif  %} 
         // check Get all is empty     
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} created = CreateAndSave(mockMvc, service, hm);
+        {{entityName}} created = CreateAndSave(hm);
         // Remove the Created {{entityName}}
-        RemoveOne(mockMvc, created.getId());
+        RemoveOne( created.getId());
         // check Get all is empty     
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}ReadTest() throws Exception {
-
+        log.debug(" in {{entityName}}  ReadTest !.");
         {%- if security  %}                 
         auth = DoAdminAuthentication() ;
         {%- endif  %}                
 
         // check Get all is 0
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave(mockMvc, service, hm);
+        {{entityName}} saved = CreateAndSave( hm);
         // Get {{entityName}} using API and verify returned One
         MvcResult mvcgResult = mockMvc.perform(
                 get("{{mapping}}/{id}", saved.getId())
@@ -146,20 +148,21 @@ public class {{entityName}}CrudUnitTest {
         assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {%-endif %} {% endfor %}
         // Remove the Created {{entityName}}
-        RemoveOne(mockMvc, found.getId());
+        RemoveOne( found.getId());
         // check Get all is 0
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}ReadAllTest() throws Exception {
+        log.debug(" in {{entityName}}  ReadAllTest !.");
         {%- if security  %}                 
         auth = DoAdminAuthentication() ;
         {%- endif  %}   
         // Get all          
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave(mockMvc, service, hm);
+        {{entityName}} saved = CreateAndSave(hm);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -177,7 +180,7 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}                
                 .andReturn();
         // Create Another Test {{entityName}} Object
-        {{entityName}} saved2 = CreateAndSave(mockMvc, service, hm);
+        {{entityName}} saved2 = CreateAndSave(  hm);
         // Get all 
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -198,22 +201,23 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Remove the Created {{entityName}}
-        RemoveOne(mockMvc, saved.getId());
+        RemoveOne( saved.getId());
         // Remove the Created {{entityName}}
-        RemoveOne(mockMvc, saved2.getId());
+        RemoveOne( saved2.getId());
         // check Get all is empty     
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}UpdateTest() throws Exception {
+        log.debug(" in {{entityName}}  UpdateTest !.");
         {%- if security  %}                 
         auth = DoAdminAuthentication() ;
         {%- endif  %}   
         // Get all          
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave(mockMvc, service, hm);
+        {{entityName}} saved = CreateAndSave( hm);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -258,20 +262,21 @@ public class {{entityName}}CrudUnitTest {
         assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {%-endif %} {% endfor %}
          // Remove the Created {{entityName}}
-         RemoveOne(mockMvc, getted.getId());
+         RemoveOne( getted.getId());
         // check Get all is empty     
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}DeleteTest() throws Exception {
+        log.debug(" in {{entityName}}  DeleteTest !.");
         {%- if security  %}                 
         auth = DoAdminAuthentication() ;
         {%- endif  %}   
         // check Get all is 0
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave(mockMvc, service, hm);
+        {{entityName}} saved = CreateAndSave( hm);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -289,7 +294,7 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Create Another Test {{entityName}} Object
-        {{entityName}} saved2 = CreateAndSave(mockMvc, service, hm);
+        {{entityName}} saved2 = CreateAndSave( hm);
         // Get all          
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -310,7 +315,7 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Remove  first one 
-        RemoveOne(mockMvc, saved.getId());
+        RemoveOne( saved.getId());
         // Get all          
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -328,16 +333,17 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Remove  last one 
-        RemoveOne(mockMvc, saved2.getId());        
+        RemoveOne(saved2.getId());        
         // check Get all is empty     
-        CheckAllEmpty(mockMvc);
+        CheckAllEmpty();
     }
     /**
      * 
      */
-    public void CheckAllEmpty(MockMvc mock)  throws  Exception{
+    public void CheckAllEmpty()  throws  Exception{
+        log.debug(" Will CheckAllEmpty in {{entityName}}  !.");
         // check Get all is 0
-        mock.perform(
+        mockMvc.perform(
                 get("{{mapping}}/all")
                 {%- if security  %}                 
                 .header("Authorization", "Bearer "+auth.getToken())
@@ -352,11 +358,12 @@ public class {{entityName}}CrudUnitTest {
     /**
     * 
     */
-    public {{entityName}} CreateAndSave(MockMvc mock, IService<{{entityName}}> serv,Map<String, Object> hm) throws IOException, Exception {
+    public {{entityName}} CreateAndSave(Map<String, Object> hm) throws IOException, Exception {
+        log.debug(" Will CreateAndSave {{entityName}}  !.");
         // Create  {{entityName}}       
-        {{entityName}} ent = Create(hm);
+        {{entityName}} ent = Create();
         // Create {{entityName}} using API and verify returned One
-        MvcResult mvcResult = mock.perform(
+        MvcResult mvcResult = mockMvc.perform(
                 post("{{mapping}}/new")
                 {%- if security  %}                 
                 .header("Authorization", "Bearer "+auth.getToken())
@@ -375,7 +382,7 @@ public class {{entityName}}CrudUnitTest {
         // Verify Created {{entityName}} using Service
         ObjectMapper mapper = new ObjectMapper();
         {{entityName}} saved = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
-        {{entityName}} found = serv.getOne(saved.getId());
+        {{entityName}} found = service.getOne(saved.getId());
         assertEquals(found.getId(), saved.getId());
         {%- for field in entity.fields %} {% if not field.foreignKey  %} 
         assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), saved.get{{field.name[0]|upper}}{{field.name[1:]}}());        
@@ -385,8 +392,9 @@ public class {{entityName}}CrudUnitTest {
     /**
      * 
      */
-    public  void RemoveOne(MockMvc mock,String id) throws Exception{  
-        mock.perform(
+    public  void RemoveOne(String id) throws Exception{  
+        log.debug(" Will RemoveOne {{entityName}}  !.");
+        mockMvc.perform(
                 delete("{{mapping}}/{id}", id)
                 {%- if security  %}                 
                 .header("Authorization", "Bearer "+auth.getToken())
@@ -408,6 +416,17 @@ public class {{entityName}}CrudUnitTest {
      * 
      */
     private {{entityName}} Update({{entityName}} old, Map<String, Object> hm) throws Exception  {        
+        {%- if 'User' == entity.name %}
+        // Add extra for User        
+        old.setLogin(HelperTests.randomString(10));  
+        old.setPassword(HelperTests.randomString(10)); 
+        old.setFirstName(HelperTests.randomString(10));
+        old.setLastName(HelperTests.randomString(10));
+        old.setEmail(HelperTests.randomString(10)+"@blabla.com");
+        old.setLangKey("EN");
+        old.setImageUrl(HelperTests.randomString(10));
+        old.setActivated(True);  
+        {%- endif %}
         {%- for field in entity.fields | sort(attribute='name') %}
                 {%- if ('int' == field.type) or ('Integer' == field.type) %}
         old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomInteger(50));  
@@ -434,21 +453,23 @@ public class {{entityName}}CrudUnitTest {
     
     @Before
     public void setUp() throws Exception {
+        log.debug(" in  setUp Test {{entityName}}  !.");
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
         {{field.foreignEntity}}CrudUnitTest {{field.foreignEntity}}tst = new {{field.foreignEntity}}CrudUnitTest();
-        {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}tst.CreateAndSave(mockMvc, fk{{field.foreignEntity}}service, hm);      
+        {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}tst.CreateAndSave(hm);      
         hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});        
         {%-endif %} {% endfor %}          
     }
 
     @After
     public void tearDown() throws Exception {
+        log.debug(" in  tearDown Test {{entityName}}  !.");
         {%- for field in entity.fields %}{%- if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's remove it once done wuth test !        
         {{field.foreignEntity}} dep{{field.foreignEntity}} = ({{field.foreignEntity}}) hm.get("{{field.foreignEntity}}");
         {{field.foreignEntity}}CrudUnitTest  {{field.foreignEntity}}tst = new {{field.foreignEntity}}CrudUnitTest();
-        {{field.foreignEntity}}tst.RemoveOne(mockMvc, dep{{field.foreignEntity}}.getId());        
+        {{field.foreignEntity}}tst.RemoveOne(dep{{field.foreignEntity}}.getId());        
         hm.remove("{{field.foreignEntity}}");        
         {%-endif %} {% endfor %}                  
     }
