@@ -3,7 +3,9 @@ package {{package}};
 import {{Entitypackage}};
 import {{Servicepackage}};
 import {{ServiceBasepackage}}.IService;
-
+{%- if security %}
+import {{packageAuth}}.AuthToken ;
+{%-endif %}
 {%- for field in entity.fields %}{%- if field.foreignKey  %}
 import {{EntityBasepackage}}.{{field.foreignEntity}};        
 import {{ServiceBasepackage}}.{{field.foreignEntity}}Service;        
@@ -50,14 +52,55 @@ public class {{entityName}}CrudUnitTest {
     private MockMvc mockMvc;
     @Autowired
     private {{entityName}}Service service;
+    private AuthToken auth ;
 {%- for field in entity.fields  %}{%- if field.foreignKey  %}
     @Autowired
     private {{field.foreignEntity}}Service fk{{field.foreignEntity}}service;
 {%-endif %} {% endfor %}     
     Map<String, Object> hm = new HashMap<>();
 
+    {% if security  %}
+    public  AuthToken DoUserAuthentication() throws Exception {        
+        String body = "{\\\"email\\\":\\\"{{uemail}}\\\",\\\"password\\\":\\\"{{upassword}}\\\"}";
+        MvcResult result = mockMvc.perform(
+                    post("/api/auth/token")
+                    .content(body))
+                .andExpect(status().isOk()).andReturn();
+
+        // Verify Getted {{entityName}} using Service
+        ObjectMapper mapper = new ObjectMapper();
+        AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
+        return authGetted;
+    }
+
+    public  AuthToken DoAdminAuthentication() throws Exception {                
+        String body = "{\\\"email\\\":\\\"{{aemail}}\\\", \\\"password\\\":\\\"{{apassword}}\\\"}";
+        MvcResult result = mockMvc.perform(
+                    post("/api/auth/token")
+                    .content(body))
+                .andExpect(status().isOk()).andReturn();
+
+        // Verify Getted {{entityName}} using Service
+        ObjectMapper mapper = new ObjectMapper();
+        AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
+        return authGetted;
+    }
+
+    @Test
+    public void nonexistentUserCannotGetToken() throws Exception {
+        String body = "{\\\"username\\\":\\\"nonexistentuser\\\", \\\"password\\\":\\\password \\\"}";
+        mockMvc.perform(
+                    post("/v2/token")
+                    .content(body))
+                .andExpect(status().isForbidden()).andReturn();
+    }
+    {%- endif  %}
+
     @Test
     public void {{entityName}}CreateTest() throws Exception {
+        {%- if security  %}                 
+        auth = DoAdminAuthentication() ;
+        {%- endif  %} 
         // check Get all is empty     
         CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
@@ -70,6 +113,11 @@ public class {{entityName}}CrudUnitTest {
 
     @Test
     public void {{entityName}}ReadTest() throws Exception {
+
+        {%- if security  %}                 
+        auth = DoAdminAuthentication() ;
+        {%- endif  %}                
+
         // check Get all is 0
         CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
@@ -77,8 +125,11 @@ public class {{entityName}}CrudUnitTest {
         // Get {{entityName}} using API and verify returned One
         MvcResult mvcgResult = mockMvc.perform(
                 get("{{mapping}}/{id}", saved.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -102,6 +153,9 @@ public class {{entityName}}CrudUnitTest {
 
     @Test
     public void {{entityName}}ReadAllTest() throws Exception {
+        {%- if security  %}                 
+        auth = DoAdminAuthentication() ;
+        {%- endif  %}   
         // Get all          
         CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
@@ -109,8 +163,11 @@ public class {{entityName}}CrudUnitTest {
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -124,8 +181,11 @@ public class {{entityName}}CrudUnitTest {
         // Get all 
         mockMvc.perform(
                 get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -147,6 +207,9 @@ public class {{entityName}}CrudUnitTest {
 
     @Test
     public void {{entityName}}UpdateTest() throws Exception {
+        {%- if security  %}                 
+        auth = DoAdminAuthentication() ;
+        {%- endif  %}   
         // Get all          
         CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
@@ -154,8 +217,11 @@ public class {{entityName}}CrudUnitTest {
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -169,8 +235,11 @@ public class {{entityName}}CrudUnitTest {
         // Get Update on Server          
         MvcResult mvcResult = mockMvc.perform(
                 put("{{mapping}}/{id}", saved.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(updt))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(updt))
         )
                 .andExpect(status().isOk())
                 .andDo(print())
@@ -196,6 +265,9 @@ public class {{entityName}}CrudUnitTest {
 
     @Test
     public void {{entityName}}DeleteTest() throws Exception {
+        {%- if security  %}                 
+        auth = DoAdminAuthentication() ;
+        {%- endif  %}   
         // check Get all is 0
         CheckAllEmpty(mockMvc);
         // Create Test {{entityName}} Object
@@ -203,8 +275,11 @@ public class {{entityName}}CrudUnitTest {
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -218,8 +293,11 @@ public class {{entityName}}CrudUnitTest {
         // Get all          
         mockMvc.perform(
                 get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -236,8 +314,11 @@ public class {{entityName}}CrudUnitTest {
         // Get all          
         mockMvc.perform(
                 get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -254,12 +335,15 @@ public class {{entityName}}CrudUnitTest {
     /**
      * 
      */
-    public static void CheckAllEmpty(MockMvc mock)  throws  Exception{
+    public void CheckAllEmpty(MockMvc mock)  throws  Exception{
         // check Get all is 0
         mock.perform(
                 get("{{mapping}}/all")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
@@ -268,14 +352,17 @@ public class {{entityName}}CrudUnitTest {
     /**
     * 
     */
-    public static {{entityName}} CreateAndSave(MockMvc mock, IService<{{entityName}}> serv,Map<String, Object> hm) throws IOException, Exception {
+    public {{entityName}} CreateAndSave(MockMvc mock, IService<{{entityName}}> serv,Map<String, Object> hm) throws IOException, Exception {
         // Create  {{entityName}}       
         {{entityName}} ent = Create(hm);
         // Create {{entityName}} using API and verify returned One
         MvcResult mvcResult = mock.perform(
                 post("{{mapping}}/new")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(asJsonString(ent))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(ent))
         )
                 .andExpect(status().isCreated())
                 .andDo(print())
@@ -298,11 +385,14 @@ public class {{entityName}}CrudUnitTest {
     /**
      * 
      */
-    public  static void RemoveOne(MockMvc mock,String id) throws Exception{
+    public  void RemoveOne(MockMvc mock,String id) throws Exception{  
         mock.perform(
                 delete("{{mapping}}/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                {%- if security  %}                 
+                .header("Authorization", "Bearer "+auth.getToken())
+                {%- endif  %}        
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();        
@@ -310,14 +400,14 @@ public class {{entityName}}CrudUnitTest {
     /**
      * 
      */
-    private static {{entityName}} Create(Map<String, Object> hm) throws  Exception{
+    private {{entityName}} Create(Map<String, Object> hm) throws  Exception{
         {{entityName}} ent = new {{entityName}}();
         return Update(ent,hm);
     }
     /**
      * 
      */
-    private static {{entityName}} Update({{entityName}} old, Map<String, Object> hm) throws Exception  {        
+    private {{entityName}} Update({{entityName}} old, Map<String, Object> hm) throws Exception  {        
         {%- for field in entity.fields | sort(attribute='name') %}
                 {%- if ('int' == field.type) or ('Integer' == field.type) %}
         old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomInteger(50));  
@@ -346,7 +436,8 @@ public class {{entityName}}CrudUnitTest {
     public void setUp() throws Exception {
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
-        {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}CrudUnitTest.CreateAndSave(mockMvc, fk{{field.foreignEntity}}service, hm);      
+        {{field.foreignEntity}}CrudUnitTest {{field.foreignEntity}}tst = new {{field.foreignEntity}}CrudUnitTest();
+        {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}tst.CreateAndSave(mockMvc, fk{{field.foreignEntity}}service, hm);      
         hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});        
         {%-endif %} {% endfor %}          
     }
@@ -356,7 +447,8 @@ public class {{entityName}}CrudUnitTest {
         {%- for field in entity.fields %}{%- if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's remove it once done wuth test !        
         {{field.foreignEntity}} dep{{field.foreignEntity}} = ({{field.foreignEntity}}) hm.get("{{field.foreignEntity}}");
-        {{field.foreignEntity}}CrudUnitTest.RemoveOne(mockMvc, dep{{field.foreignEntity}}.getId());        
+        {{field.foreignEntity}}CrudUnitTest  {{field.foreignEntity}}tst = new {{field.foreignEntity}}CrudUnitTest();
+        {{field.foreignEntity}}tst.RemoveOne(mockMvc, dep{{field.foreignEntity}}.getId());        
         hm.remove("{{field.foreignEntity}}");        
         {%-endif %} {% endfor %}                  
     }

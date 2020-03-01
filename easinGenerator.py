@@ -102,12 +102,12 @@ class Generator:
         self.__GenerateEntity()
         Helper.logger.info("Generate configurations ==>   ")
         self.__GenerateConfiguration()
-        if self.tests:
-            Helper.logger.info("Generate tests ==>   ")
-            self.__GenerateTests()
         if self.security:
             Helper.logger.info("Generate Security ==>   ")
             self.__GenerateSecurity()
+        if self.tests:
+            Helper.logger.info("Generate tests ==>   ")
+            self.__GenerateTests()
 
     def __GenerateEntity(self):
         # loop in entities
@@ -337,6 +337,12 @@ class Generator:
             Helper.logger.debug("> Generating Crud tests file for Entity {} .".format(ent.name))
             template = Environment(loader=BaseLoader()).from_string(templates[Generator.CrudTest_Template])
             output = template.render(package=self.__project.package,
+                                     packageAuth=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder,
+                                     security=self.security,
+                                     aemail=self.amail,
+                                     uemail=self.umail,
+                                     apassword=self.apassword,
+                                     upassword=self.upassword,
                                      Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
                                      Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name + Project.Service_prepend,
                                      ServiceBasepackage=self.__project.package + "." + Project.Services_folder,
@@ -440,6 +446,10 @@ class Generator:
         upwdhash = bcrypt.hashpw(upasswd.encode(), self.key )
         mail_prefix = Helper.randomString(5)
         umail_prefix = Helper.randomString(5)
+        self.amail = mail_prefix+"_admin@admin.com"
+        self.umail = umail_prefix+"_user@user.com"
+        self.apassword = passwd
+        self.upassword = upasswd
         output = template.render(   uuid=uuid.uuid1() ,
                                     uuuid=uuid.uuid1() ,
                                     password=pwdhash.decode(), 
@@ -448,8 +458,8 @@ class Generator:
                                     upasswordclear=upasswd,
                                     login=mail_prefix+"Admin",
                                     ulogin=umail_prefix+"User",
-                                    mail=mail_prefix+"_admin@admin.com",
-                                    umail=umail_prefix+"_user@user.com").encode("utf-8")
+                                    mail=self.amail,
+                                    umail=self.umail).encode("utf-8")
         f = open(self.outputDir + Project.Resources_Dir + '/' + Generator.Data_Template , 'wb')
         f.write(output)
         f.close()             
