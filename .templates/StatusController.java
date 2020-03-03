@@ -16,12 +16,14 @@ public class StatusController {
     @RequestMapping(value = "/version", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public Map<String, String> versionInformation() throws IOException {
-        return readGitProperties();
+    	  Map<String, String> ll = new HashMap<String, String>();
+			ll.put("Server status ", " Working fine !!");
+        //readGitProperties(ll);
+        return  ll;        
     }
-
-    private Map<String, String> readGitProperties() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        Map<String, String> ll = new HashMap<String, String>();
+/* Removed because git plugin is taken too munch time on booting : 
+    private Map<String, String> readGitProperties(Map<String, String> ll) {
+        ClassLoader classLoader = getClass().getClassLoader();        
         try {
             InputStream inputStream = classLoader.getResourceAsStream("git.properties");
             JsonNode node = new ObjectMapper().readTree(inputStream);
@@ -35,15 +37,15 @@ public class StatusController {
             jsnode = node.get("git.build.version");
             ll.put("version", jsnode.textValue());
             jsnode = node.get("git.closest.tag.name");
-            /* next fies are setting issue ..  not really needed !
-            ll.put("closest_tag", jsnode.textValue());
-            jsnode = node.get("git.commit.id.abbrev");
-            ll.put("short_hash", jsnode.textValue());
-            jsnode = node.get("git.commit.time");
-            ll.put("commit_time", jsnode.textValue());*/
+            // next fies are setting issue ..  not really needed !
+            // ll.put("closest_tag", jsnode.textValue());
+            // jsnode = node.get("git.commit.id.abbrev");
+            // ll.put("short_hash", jsnode.textValue());
+            // jsnode = node.get("git.commit.time");
+            // ll.put("commit_time", jsnode.textValue());
         } catch (IOException e1) {
             e1.printStackTrace();
         }
         return ll;
-    }
+    }*/
 }

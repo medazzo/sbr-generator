@@ -155,6 +155,7 @@
     </dependencies>
     <build>
         <plugins>
+<!-- not really needed 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -171,6 +172,7 @@
                     </execution>
                 </executions>
             </plugin>
+-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -193,6 +195,7 @@
                     <path>{{pom.restPath}}</path>
                 </configuration>
             </plugin>
+            <!-- Removed : take much time in starting and traces 
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
@@ -224,7 +227,7 @@
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
                     <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
                 </configuration>
-            </plugin>
+            </plugin> -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

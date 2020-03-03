@@ -1380,6 +1380,278 @@ public class MyErrorController implements ErrorController {
     </dependencies>
     <build>
         <plugins>
+<!-- not really needed 
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <echo>current active profile: ${springProfile}</echo>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+-->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <configLocation>google_checks.xml</configLocation>
+                </configuration>
+                <version>2.17</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <url>http://localhost:8080/manager/text</url>
+                    <server>TomcatServer</server>
+                    <path>{{pom.restPath}}</path>
+                </configuration>
+            </plugin>
+            <!-- Removed : take much time in starting and traces 
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <prefix>git</prefix>
+                    <verbose>true</verbose>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties
+                    </generateGitPropertiesFilename>
+                    <format>json</format>
+                    <gitDescribe>
+                        <skip>false</skip>
+                        <always>false</always>
+                        <dirty>-dirty</dirty>
+                    </gitDescribe>
+                    <excludeProperties>
+                        <excludeProperty>git.commit.*</excludeProperty>
+                        <excludeProperty>git.remote.origin.url</excludeProperty>
+                    </excludeProperties>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+                </configuration>
+            </plugin> -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <repositories>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project> """,
+    'pom.xml~' :  """<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.2.0.BUILD-SNAPSHOT</version>
+        <relativePath/>
+        <!-- lookup parent from repository -->
+    </parent>
+    <groupId>{{pom.package}}</groupId>
+    <artifactId>{{pom.name}}</artifactId>
+    <version>{{pom.version}}</version>
+    <name>{{pom.longname}}</name>
+    <description>{{pom.description}}</description>
+    <url>{{pom.url}}</url>
+    <packaging>war</packaging>
+    <properties>
+        <java.version>11</java.version>
+        <start-class>{{startClass}}</start-class>
+    </properties>
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <springProfile>dev</springProfile>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <springProfile>prod</springProfile>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <springProfile>test</springProfile>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Swagger -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.6.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Swagger UI -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.6.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>html2pdf</artifactId>
+            <version>2.1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        {%- if security %}
+           <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+        </dependency>
+        {%- endif %}
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>17.0.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>            
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>            
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -1418,6 +1690,7 @@ public class MyErrorController implements ErrorController {
                     <path>{{pom.restPath}}</path>
                 </configuration>
             </plugin>
+            <!-- Removed : take much time in starting and traces 
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
@@ -1449,7 +1722,7 @@ public class MyErrorController implements ErrorController {
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
                     <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
                 </configuration>
-            </plugin>
+            </plugin> -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -1812,12 +2085,65 @@ public class StatusController {
     @RequestMapping(value = "/version", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public Map<String, String> versionInformation() throws IOException {
-        return readGitProperties();
+    	  Map<String, String> ll = new HashMap<String, String>();
+			ll.put("Server status ", " Working fine !!");
+        //readGitProperties(ll);
+        return  ll;        
     }
+/* Removed because git plugin is taken too munch time on booting : 
+    private Map<String, String> readGitProperties(Map<String, String> ll) {
+        ClassLoader classLoader = getClass().getClassLoader();        
+        try {
+            InputStream inputStream = classLoader.getResourceAsStream("git.properties");
+            JsonNode node = new ObjectMapper().readTree(inputStream);
+            JsonNode jsnode;
+            jsnode = node.get("git.branch");
+            ll.put("branch", jsnode.textValue());
+            jsnode = node.get("git.build.time");
+            ll.put("build_time", jsnode.textValue());
+            jsnode = node.get("git.build.user.email");
+            ll.put("email", jsnode.textValue());
+            jsnode = node.get("git.build.version");
+            ll.put("version", jsnode.textValue());
+            jsnode = node.get("git.closest.tag.name");
+            // next fies are setting issue ..  not really needed !
+            // ll.put("closest_tag", jsnode.textValue());
+            // jsnode = node.get("git.commit.id.abbrev");
+            // ll.put("short_hash", jsnode.textValue());
+            // jsnode = node.get("git.commit.time");
+            // ll.put("commit_time", jsnode.textValue());
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        return ll;
+    }*/
+} """,
+    'StatusController.java~' :  """package {{package}};
 
-    private Map<String, String> readGitProperties() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        Map<String, String> ll = new HashMap<String, String>();
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+@Controller
+@RequestMapping(path = "/status")
+public class StatusController {
+
+    @RequestMapping(value = "/version", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Map<String, String> versionInformation() throws IOException {
+    	  Map<String, String> ll = new HashMap<String, String>();
+			ll.put("Server status ", " Working fine !!");
+        //readGitProperties(ll);
+        return  ll;        
+    }
+/* Removed because git plugin is taken too munch time on booting : 
+    private Map<String, String> readGitProperties(Map<String, String> ll) {
+        ClassLoader classLoader = getClass().getClassLoader();        
         try {
             InputStream inputStream = classLoader.getResourceAsStream("git.properties");
             JsonNode node = new ObjectMapper().readTree(inputStream);
@@ -1841,7 +2167,7 @@ public class StatusController {
             e1.printStackTrace();
         }
         return ll;
-    }
+    }*/
 } """,
     'SwaggerConfiguration.java' :  """package {{package}};
 
