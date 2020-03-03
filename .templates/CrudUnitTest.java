@@ -6,7 +6,8 @@ import {{Servicepackage}};
 import {{packageAuth}}.AuthToken ;
 {%-endif %}
 {%- for field in entity.fields %}{%- if field.foreignKey  %}
-import {{EntityBasepackage}}.{{field.foreignEntity}};              
+import {{EntityBasepackage}}.{{field.foreignEntity}};
+import {{ServiceBasepackage}}.{{field.foreignEntity}}Service;
 {%-endif %} {% endfor %}     
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,10 @@ public class {{entityName}}CrudUnitTest {
     private MockMvc mockMvc;
     @Autowired
     private {{entityName}}Service service;
+{%- for field in entity.fields  %}{%- if field.foreignKey  %}
+    @Autowired
+    private {{field.foreignEntity}}Service fk{{field.foreignEntity}}service;
+{%-endif %} {% endfor %}
     private AuthToken auth ;
     Map<String, Object> hm = new HashMap<>();
     @Autowired
@@ -116,7 +121,7 @@ public class {{entityName}}CrudUnitTest {
         // check Get all is empty     
         CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} created = CreateAndSave(hm);
+        {{entityName}} created = CreateAndSave(mockMvc, mapper, service, auth);
         // Remove the Created {{entityName}}
         RemoveOne( created.getId());
         // check Get all is empty     
@@ -133,7 +138,7 @@ public class {{entityName}}CrudUnitTest {
         // check Get all is 0
         CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave( hm);
+        {{entityName}} saved = CreateAndSave(mockMvc, mapper, service, auth);
         // Get {{entityName}} using API and verify returned One
         MvcResult mvcgResult = mockMvc.perform(
                 get("{{mapping}}/{id}", saved.getId())
@@ -171,7 +176,7 @@ public class {{entityName}}CrudUnitTest {
         // Get all          
         CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave(hm);
+        {{entityName}} saved = CreateAndSave(mockMvc, mapper, service, auth);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -189,7 +194,7 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}                
                 .andReturn();
         // Create Another Test {{entityName}} Object
-        {{entityName}} saved2 = CreateAndSave(  hm);
+        {{entityName}} saved2 = CreateAndSave(mockMvc, mapper, service, auth);
         // Get all 
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -226,7 +231,7 @@ public class {{entityName}}CrudUnitTest {
         // Get all          
         CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave( hm);
+        {{entityName}} saved = CreateAndSave(mockMvc, mapper, service, auth);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -244,7 +249,7 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Update 
-        {{entityName}} updt = Update(saved, hm);
+        {{entityName}} updt = Update(saved);
         // Get Update on Server          
         MvcResult mvcResult = mockMvc.perform(
                 put("{{mapping}}/{id}", saved.getId())
@@ -284,7 +289,7 @@ public class {{entityName}}CrudUnitTest {
         // check Get all is 0
         CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} saved = CreateAndSave( hm);
+        {{entityName}} saved = CreateAndSave(mockMvc, mapper, service, auth);
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -302,7 +307,7 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Create Another Test {{entityName}} Object
-        {{entityName}} saved2 = CreateAndSave( hm);
+        {{entityName}} saved2 = CreateAndSave(mockMvc, mapper, service, auth);
         // Get all          
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -375,15 +380,15 @@ public class {{entityName}}CrudUnitTest {
     /**
     * 
     */
-    public {{entityName}} CreateAndSave(Map<String, Object> hm) throws IOException, Exception {
+    public static {{entityName}} CreateAndSave(MockMvc movc, ObjectMapper mapp, {{entityName}}Service srvc, AuthToken authent) throws IOException, Exception {
         log.debug(" Will CreateAndSave {{entityName}}  !.");
         // Create  {{entityName}}       
-        {{entityName}} ent = Create(hm);
+        {{entityName}} ent = Create();
         // Create {{entityName}} using API and verify returned One
-        MvcResult mvcResult = mockMvc.perform(
+        MvcResult mvcResult = movc.perform(
                 post("{{mapping}}/new")
                 {%- if security  %}                 
-                .header("Authorization", "Bearer "+auth.getToken())
+                .header("Authorization", "Bearer "+authent.getToken())
                 {%- endif  %}        
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(ent))
@@ -397,8 +402,8 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Verify Created {{entityName}} using Service
-        {{entityName}} saved = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
-        {{entityName}} found = service.getOne(saved.getId());
+        {{entityName}} saved = mapp.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
+        {{entityName}} found = srvc.getOne(saved.getId());
         assertEquals(found.getId(), saved.getId());
         {%- for field in entity.fields %} {% if not field.foreignKey  %} 
         assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), saved.get{{field.name[0]|upper}}{{field.name[1:]}}());        
@@ -424,24 +429,26 @@ public class {{entityName}}CrudUnitTest {
     /**
      * 
      */
-    private {{entityName}} Create(Map<String, Object> hm) throws  Exception{
+    public static {{entityName}} Create() throws  Exception{
         {{entityName}} ent = new {{entityName}}();
-        return Update(ent,hm);
+        return Update(ent);
     }
     /**
      * 
      */
-    private {{entityName}} Update({{entityName}} old, Map<String, Object> hm) throws Exception  {        
+    public static  {{entityName}} Update({{entityName}} old) throws Exception  {
         {%- if 'User' == entity.name %}
         // Add extra for User        
         old.setLogin(HelperTests.randomString(10));  
         old.setPassword(HelperTests.randomString(10)); 
         old.setFirstName(HelperTests.randomString(10));
         old.setLastName(HelperTests.randomString(10));
+        old.setPassword(HelperTests.randomString(10));
         old.setEmail(HelperTests.randomString(10)+"@blabla.com");
         old.setLangKey("EN");
         old.setImageUrl(HelperTests.randomString(10));
-        old.setActivated(true);  
+        old.setActivated(true);
+        log.debug(" ##### Updating {{entityName}} >> "+old);
         {%- endif %}
         {%- for field in entity.fields | sort(attribute='name') %}
                 {%- if ('int' == field.type) or ('Integer' == field.type) %}
@@ -458,7 +465,8 @@ public class {{entityName}}CrudUnitTest {
                 {%- else %}          
                         {%- if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !        
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(({{field.foreignEntity}})hm.get("{{field.foreignEntity}}"));
+        // not really needed to change foregni keys
+        // old.set{{field.name[0]|upper}}{{field.name[1:]}}(({{field.foreignEntity}})hm.get("{{field.foreignEntity}}"));
                         {%- else %}
         old.set{{field.name[0]|upper}}{{field.name[1:]}}(new {{field.type}}());  //TODO {{field.type }} Not supported type yet : easy to do!                
                         {%- endif %}                 
@@ -472,10 +480,12 @@ public class {{entityName}}CrudUnitTest {
     public void setUp() throws Exception {
         mapper.registerModule(new JavaTimeModule());
         log.debug(" in  setUp Test {{entityName}}  !.");
+        {%- if security  %}
+        auth = DoAdminAuthentication() ;
+        {%- endif  %}
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
-        {{field.foreignEntity}}CrudUnitTest {{field.foreignEntity}}tst = new {{field.foreignEntity}}CrudUnitTest();
-        {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}tst.CreateAndSave(hm);      
+        {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}CrudUnitTest.CreateAndSave(mockMvc, mapper, fk{{field.foreignEntity}}service, auth);
         hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});        
         {%-endif %} {% endfor %}          
     }
