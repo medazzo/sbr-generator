@@ -2,17 +2,14 @@ package {{package}};
 
 import {{Entitypackage}};
 import {{Servicepackage}};
-import {{ServiceBasepackage}}.IService;
 {%- if security %}
 import {{packageAuth}}.AuthToken ;
 {%-endif %}
 {%- for field in entity.fields %}{%- if field.foreignKey  %}
-import {{EntityBasepackage}}.{{field.foreignEntity}};        
-import {{ServiceBasepackage}}.{{field.foreignEntity}}Service;        
+import {{EntityBasepackage}}.{{field.foreignEntity}};              
 {%-endif %} {% endfor %}     
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,12 +36,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import javax.annotation.PostConstruct;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 
 @RunWith(SpringRunner.class)
 @ExtendWith(SpringExtension.class)
 @SpringBootTest()
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace=Replace.NONE)
 @Slf4j
 public class {{entityName}}CrudUnitTest {
 
@@ -54,6 +57,8 @@ public class {{entityName}}CrudUnitTest {
     private {{entityName}}Service service;
     private AuthToken auth ;
     Map<String, Object> hm = new HashMap<>();
+    @Autowired
+    private ObjectMapper mapper;
 
     {% if security  %}
     public  AuthToken DoUserAuthentication() throws Exception {        
@@ -61,11 +66,12 @@ public class {{entityName}}CrudUnitTest {
         log.debug(" Try to authenticate  user '{{uemail}}'' with his password '{{upassword}}'.");
         MvcResult result = mockMvc.perform(
                     post("/api/auth/token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
                     .content(body))
                 .andExpect(status().isOk()).andReturn();
 
         // Verify Getted {{entityName}} using Service
-        ObjectMapper mapper = new ObjectMapper();
         AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
         log.debug(" >>> User '{{uemail}}'' has been authenticated , his tomen is  '"+ authGetted.getToken() +"'.");
         return authGetted;
@@ -76,11 +82,12 @@ public class {{entityName}}CrudUnitTest {
         log.debug(" Try to authenticate  Admin '{{aemail}}'' with his password '{{apassword}}'.");
         MvcResult result = mockMvc.perform(
                     post("/api/auth/token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
                     .content(body))
                 .andExpect(status().isOk()).andReturn();
 
         // Verify Getted {{entityName}} using Service
-        ObjectMapper mapper = new ObjectMapper();
         AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
         log.debug(" >>> Admin '{{uemail}}'' has been authenticated , his tomen is  '"+ authGetted.getToken() +"'.");
         return authGetted;
@@ -91,8 +98,11 @@ public class {{entityName}}CrudUnitTest {
         String body = "{\\\"username\\\":\\\"nonexistentuser\\\", \\\"password\\\":\\\password \\\"}";
         mockMvc.perform(
                     post("/v2/token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
                     .content(body))
-                .andExpect(status().isForbidden()).andReturn();
+                .andExpect(status().isUnauthorized())
+                .andReturn();
         log.debug(" Try to authenticate  non Existant User !.");
     }
     {%- endif  %}
@@ -140,7 +150,6 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Verify Getted {{entityName}} using Service
-        ObjectMapper mapper = new ObjectMapper();
         {{entityName}} getted = mapper.readValue(mvcgResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(getted.getId());
         assertEquals(found.getId(), getted.getId());
@@ -254,7 +263,6 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Verify Getted {{entityName}}using Service
-        ObjectMapper mapper = new ObjectMapper();
         {{entityName}} getted = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(getted.getId());
         assertEquals(found.getId(), getted.getId());
@@ -341,7 +349,11 @@ public class {{entityName}}CrudUnitTest {
      * 
      */
     public void CheckAllEmpty()  throws  Exception{
-        log.debug(" Will CheckAllEmpty in {{entityName}}  !.");
+{%- if 'User' == entity.name %}
+        log.debug(" Will CheckAllEmpty in {{entityName}} (Well, not realyy empty, but contains only 2 : since we already have 2 user: admin + user) !.");
+{%- else %}
+    log.debug(" Will CheckAllEmpty in {{entityName}}  !.");
+{%- endif %}
         // check Get all is 0
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -353,7 +365,12 @@ public class {{entityName}}CrudUnitTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+{%- if 'User' == entity.name %}
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)));
+{%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+{%- endif %}                
+
     }
     /**
     * 
@@ -361,7 +378,7 @@ public class {{entityName}}CrudUnitTest {
     public {{entityName}} CreateAndSave(Map<String, Object> hm) throws IOException, Exception {
         log.debug(" Will CreateAndSave {{entityName}}  !.");
         // Create  {{entityName}}       
-        {{entityName}} ent = Create();
+        {{entityName}} ent = Create(hm);
         // Create {{entityName}} using API and verify returned One
         MvcResult mvcResult = mockMvc.perform(
                 post("{{mapping}}/new")
@@ -380,7 +397,6 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Verify Created {{entityName}} using Service
-        ObjectMapper mapper = new ObjectMapper();
         {{entityName}} saved = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(saved.getId());
         assertEquals(found.getId(), saved.getId());
@@ -425,7 +441,7 @@ public class {{entityName}}CrudUnitTest {
         old.setEmail(HelperTests.randomString(10)+"@blabla.com");
         old.setLangKey("EN");
         old.setImageUrl(HelperTests.randomString(10));
-        old.setActivated(True);  
+        old.setActivated(true);  
         {%- endif %}
         {%- for field in entity.fields | sort(attribute='name') %}
                 {%- if ('int' == field.type) or ('Integer' == field.type) %}
@@ -451,8 +467,10 @@ public class {{entityName}}CrudUnitTest {
         return old;
     }
     
+    @PostConstruct
     @Before
     public void setUp() throws Exception {
+        mapper.registerModule(new JavaTimeModule());
         log.debug(" in  setUp Test {{entityName}}  !.");
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
