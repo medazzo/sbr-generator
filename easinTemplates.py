@@ -200,7 +200,6 @@ import java.util.Date;
 
 import javax.persistence.*;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -247,7 +246,6 @@ public abstract class BaseEntity implements Serializable {
 } """,
     'CommandInitializer.java' :  """package {{package}};
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
@@ -411,17 +409,14 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
 
 import {{Entitypackage}};
 import {{Servicepackage}};
-import {{ServiceBasepackage}}.IService;
 {%- if security %}
 import {{packageAuth}}.AuthToken ;
 {%-endif %}
 {%- for field in entity.fields %}{%- if field.foreignKey  %}
-import {{EntityBasepackage}}.{{field.foreignEntity}};        
-import {{ServiceBasepackage}}.{{field.foreignEntity}}Service;        
+import {{EntityBasepackage}}.{{field.foreignEntity}};              
 {%-endif %} {% endfor %}     
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -448,12 +443,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import javax.annotation.PostConstruct;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 
 @RunWith(SpringRunner.class)
 @ExtendWith(SpringExtension.class)
 @SpringBootTest()
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace=Replace.NONE)
 @Slf4j
 public class {{entityName}}CrudUnitTest {
 
@@ -463,6 +464,8 @@ public class {{entityName}}CrudUnitTest {
     private {{entityName}}Service service;
     private AuthToken auth ;
     Map<String, Object> hm = new HashMap<>();
+    @Autowired
+    private ObjectMapper mapper;
 
     {% if security  %}
     public  AuthToken DoUserAuthentication() throws Exception {        
@@ -470,11 +473,12 @@ public class {{entityName}}CrudUnitTest {
         log.debug(" Try to authenticate  user '{{uemail}}'' with his password '{{upassword}}'.");
         MvcResult result = mockMvc.perform(
                     post("/api/auth/token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
                     .content(body))
                 .andExpect(status().isOk()).andReturn();
 
         // Verify Getted {{entityName}} using Service
-        ObjectMapper mapper = new ObjectMapper();
         AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
         log.debug(" >>> User '{{uemail}}'' has been authenticated , his tomen is  '"+ authGetted.getToken() +"'.");
         return authGetted;
@@ -485,11 +489,12 @@ public class {{entityName}}CrudUnitTest {
         log.debug(" Try to authenticate  Admin '{{aemail}}'' with his password '{{apassword}}'.");
         MvcResult result = mockMvc.perform(
                     post("/api/auth/token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
                     .content(body))
                 .andExpect(status().isOk()).andReturn();
 
         // Verify Getted {{entityName}} using Service
-        ObjectMapper mapper = new ObjectMapper();
         AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
         log.debug(" >>> Admin '{{uemail}}'' has been authenticated , his tomen is  '"+ authGetted.getToken() +"'.");
         return authGetted;
@@ -500,8 +505,11 @@ public class {{entityName}}CrudUnitTest {
         String body = "{\\\"username\\\":\\\"nonexistentuser\\\", \\\"password\\\":\\\password \\\"}";
         mockMvc.perform(
                     post("/v2/token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
                     .content(body))
-                .andExpect(status().isForbidden()).andReturn();
+                .andExpect(status().isUnauthorized())
+                .andReturn();
         log.debug(" Try to authenticate  non Existant User !.");
     }
     {%- endif  %}
@@ -515,7 +523,7 @@ public class {{entityName}}CrudUnitTest {
         // check Get all is empty     
         CheckAllEmpty();
         // Create Test {{entityName}} Object
-        {{entityName}} created = CreateAndSave( hm);
+        {{entityName}} created = CreateAndSave(hm);
         // Remove the Created {{entityName}}
         RemoveOne( created.getId());
         // check Get all is empty     
@@ -549,7 +557,6 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Verify Getted {{entityName}} using Service
-        ObjectMapper mapper = new ObjectMapper();
         {{entityName}} getted = mapper.readValue(mvcgResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(getted.getId());
         assertEquals(found.getId(), getted.getId());
@@ -663,7 +670,6 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Verify Getted {{entityName}}using Service
-        ObjectMapper mapper = new ObjectMapper();
         {{entityName}} getted = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(getted.getId());
         assertEquals(found.getId(), getted.getId());
@@ -750,7 +756,11 @@ public class {{entityName}}CrudUnitTest {
      * 
      */
     public void CheckAllEmpty()  throws  Exception{
-        log.debug(" Will CheckAllEmpty in {{entityName}}  !.");
+{%- if 'User' == entity.name %}
+        log.debug(" Will CheckAllEmpty in {{entityName}} (Well, not realyy empty, but contains only 2 : since we already have 2 user: admin + user) !.");
+{%- else %}
+    log.debug(" Will CheckAllEmpty in {{entityName}}  !.");
+{%- endif %}
         // check Get all is 0
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -762,7 +772,12 @@ public class {{entityName}}CrudUnitTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+{%- if 'User' == entity.name %}
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)));
+{%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
+{%- endif %}                
+
     }
     /**
     * 
@@ -770,7 +785,7 @@ public class {{entityName}}CrudUnitTest {
     public {{entityName}} CreateAndSave(Map<String, Object> hm) throws IOException, Exception {
         log.debug(" Will CreateAndSave {{entityName}}  !.");
         // Create  {{entityName}}       
-        {{entityName}} ent = Create();
+        {{entityName}} ent = Create(hm);
         // Create {{entityName}} using API and verify returned One
         MvcResult mvcResult = mockMvc.perform(
                 post("{{mapping}}/new")
@@ -789,7 +804,6 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Verify Created {{entityName}} using Service
-        ObjectMapper mapper = new ObjectMapper();
         {{entityName}} saved = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(saved.getId());
         assertEquals(found.getId(), saved.getId());
@@ -825,16 +839,16 @@ public class {{entityName}}CrudUnitTest {
      * 
      */
     private {{entityName}} Update({{entityName}} old, Map<String, Object> hm) throws Exception  {        
-        {%- if 'User' == {{entityName}} %}
+        {%- if 'User' == entity.name %}
         // Add extra for User        
-        old.setLogin(HelperTests.randomInteger(10));  
-        old.setPassword(HelperTests.randomInteger(10)); 
-        old.setFirstName(HelperTests.randomInteger(10));
-        old.setLastName(HelperTests.randomInteger(10));
-        old.setEmail(HelperTests.randomInteger(10)+"@blabla.com"));
+        old.setLogin(HelperTests.randomString(10));  
+        old.setPassword(HelperTests.randomString(10)); 
+        old.setFirstName(HelperTests.randomString(10));
+        old.setLastName(HelperTests.randomString(10));
+        old.setEmail(HelperTests.randomString(10)+"@blabla.com");
         old.setLangKey("EN");
-        old.setImageUrl(HelperTests.randomInteger(10));
-        old.setActivated(True);  
+        old.setImageUrl(HelperTests.randomString(10));
+        old.setActivated(true);  
         {%- endif %}
         {%- for field in entity.fields | sort(attribute='name') %}
                 {%- if ('int' == field.type) or ('Integer' == field.type) %}
@@ -860,8 +874,10 @@ public class {{entityName}}CrudUnitTest {
         return old;
     }
     
+    @PostConstruct
     @Before
     public void setUp() throws Exception {
+        mapper.registerModule(new JavaTimeModule());
         log.debug(" in  setUp Test {{entityName}}  !.");
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
@@ -1182,12 +1198,10 @@ public class LoginUser {
 } """,
     'MyErrorController.java' :  """package {{package}};
 
-import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
-import javax.servlet.*;
 import javax.servlet.http.*;
 
 @Slf4j
@@ -1241,14 +1255,6 @@ public class MyErrorController implements ErrorController {
             <properties>
                 <springProfile>dev</springProfile>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>com.h2database</groupId>
-                    <artifactId>h2</artifactId>
-                    <version>1.4.199</version>
-                    <scope>runtime</scope>
-                </dependency>
-            </dependencies>
         </profile>
         <profile>
             <id>prod</id>
@@ -1349,7 +1355,6 @@ public class MyErrorController implements ErrorController {
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -1365,13 +1370,11 @@ public class MyErrorController implements ErrorController {
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
-            <version>1.4.199</version>
+            <scope>test</scope>            
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.6</version>
+            <artifactId>httpclient</artifactId>            
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -1418,7 +1421,6 @@ public class MyErrorController implements ErrorController {
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
-                <version>2.2.4</version>
                 <executions>
                     <execution>
                         <id>get-the-git-infos</id>
@@ -1720,11 +1722,7 @@ public class RestConfig {
     'Service.java' :  """package {{package}};
 
 
-import {{package}}.IService;
-import {{projectPackage}}.exceptions.ResourceBadParameterException;
 import {{projectPackage}}.exceptions.ResourceNotFoundException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -1958,14 +1956,12 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 import lombok.*;
 import java.time.Instant;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiModel;
 import org.hibernate.annotations.GenericGenerator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.BatchSize;
 import {{configConstants}}.Constants;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * User definition Class
@@ -2058,9 +2054,6 @@ public class User extends BaseEntity {
 } """,
     'UserService.java' :  """package {{package}};
 
-
-import {{package}}.IService;
-import {{projectPackage}}.exceptions.ResourceBadParameterException;
 import {{projectPackage}}.exceptions.ResourceNotFoundException;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -2072,8 +2065,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
