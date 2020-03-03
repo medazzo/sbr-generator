@@ -1,4 +1,4 @@
-PyYAML==5.1
+Pyyaml==5.1
 Jinja2==2.10.3
 coloredlogs==10.0
 bcrypt==3.1.7
