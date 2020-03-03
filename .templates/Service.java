@@ -1,11 +1,7 @@
 package {{package}};
 
 
-import {{package}}.IService;
-import {{projectPackage}}.exceptions.ResourceBadParameterException;
 import {{projectPackage}}.exceptions.ResourceNotFoundException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

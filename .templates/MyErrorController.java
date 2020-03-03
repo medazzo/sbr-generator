@@ -1,11 +1,9 @@
 package {{package}};
 
-import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
-import javax.servlet.*;
 import javax.servlet.http.*;
 
 @Slf4j

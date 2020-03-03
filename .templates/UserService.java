@@ -1,8 +1,5 @@
 package {{package}};
 
-
-import {{package}}.IService;
-import {{projectPackage}}.exceptions.ResourceBadParameterException;
 import {{projectPackage}}.exceptions.ResourceNotFoundException;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,8 +11,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

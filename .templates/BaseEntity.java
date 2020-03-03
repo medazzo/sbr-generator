@@ -5,7 +5,6 @@ import java.util.Date;
 
 import javax.persistence.*;
 
-import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 

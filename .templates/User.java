@@ -4,14 +4,12 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 import lombok.*;
 import java.time.Instant;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiModel;
 import org.hibernate.annotations.GenericGenerator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.BatchSize;
 import {{configConstants}}.Constants;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * User definition Class
