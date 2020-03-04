@@ -39,6 +39,9 @@ logging:
       springframework:
         web: DEBUG
       hibernate: DEBUG
+      boot:
+        autoconfigure:
+          logging: INFO
 ---
 
 spring:
@@ -67,6 +70,9 @@ logging:
       springframework:
         web: DEBUG
       hibernate: DEBUG
+      boot:
+        autoconfigure:
+          logging: INFO
 ---
 
 spring:

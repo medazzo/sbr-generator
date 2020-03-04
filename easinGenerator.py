@@ -348,6 +348,7 @@ class Generator:
                                      ServiceBasepackage=self.__project.package + "." + Project.Services_folder,
                                      EntityBasepackage=self.__project.package + "." + Project.Entities_folder,
                                      entityName=ent.name,
+                                     packageConstants=self.__project.package + "." + Project.Conf_folder,
                                      mapping=Project.ApiPrefix + ent.name.lower(),
                                      entity=ent).encode("utf-8")
             f = open(self.__testdir + '/' + ent.name + Generator.CrudTest_Template, 'wb')

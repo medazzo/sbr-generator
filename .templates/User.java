@@ -46,9 +46,8 @@ public class User extends BaseEntity {
     @Column(length = 50, unique = true, nullable = false)
     private String login;
 
-    @JsonIgnore
     @NotNull
-    @Size(min = 128, max = 128)
+    @Size(min = 60, max = 128)
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
 

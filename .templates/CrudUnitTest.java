@@ -4,11 +4,13 @@ import {{Entitypackage}};
 import {{Servicepackage}};
 {%- if security %}
 import {{packageAuth}}.AuthToken ;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 {%-endif %}
 {%- for field in entity.fields %}{%- if field.foreignKey  %}
 import {{EntityBasepackage}}.{{field.foreignEntity}};
 import {{ServiceBasepackage}}.{{field.foreignEntity}}Service;
-{%-endif %} {% endfor %}     
+{%-endif %} {% endfor %}
+import {{packageConstants}}.Constants;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
@@ -65,7 +67,7 @@ public class {{entityName}}CrudUnitTest {
     @Autowired
     private ObjectMapper mapper;
 
-    {% if security  %}
+    {%- if security  %}
     public  AuthToken DoUserAuthentication() throws Exception {        
         String body = "{\\\"email\\\":\\\"{{uemail}}\\\",\\\"password\\\":\\\"{{upassword}}\\\"}";
         log.debug(" Try to authenticate  user '{{uemail}}'' with his password '{{upassword}}'.");
@@ -123,7 +125,7 @@ public class {{entityName}}CrudUnitTest {
         // Create Test {{entityName}} Object
         {{entityName}} created = CreateAndSave(mockMvc, mapper, service, auth);
         // Remove the Created {{entityName}}
-        RemoveOne( created.getId());
+        RemoveOne( created.getId(), mockMvc, auth);
         // check Get all is empty     
         CheckAllEmpty();
     }
@@ -162,7 +164,7 @@ public class {{entityName}}CrudUnitTest {
         assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {%-endif %} {% endfor %}
         // Remove the Created {{entityName}}
-        RemoveOne( found.getId());
+        RemoveOne( found.getId(), mockMvc, auth);
         // check Get all is 0
         CheckAllEmpty();
     }
@@ -215,9 +217,9 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Remove the Created {{entityName}}
-        RemoveOne( saved.getId());
+        RemoveOne( saved.getId(), mockMvc, auth);
         // Remove the Created {{entityName}}
-        RemoveOne( saved2.getId());
+        RemoveOne( saved2.getId(), mockMvc, auth);
         // check Get all is empty     
         CheckAllEmpty();
     }
@@ -275,7 +277,7 @@ public class {{entityName}}CrudUnitTest {
         assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
         {%-endif %} {% endfor %}
          // Remove the Created {{entityName}}
-         RemoveOne( getted.getId());
+         RemoveOne( getted.getId(), mockMvc, auth);
         // check Get all is empty     
         CheckAllEmpty();
     }
@@ -328,7 +330,7 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Remove  first one 
-        RemoveOne( saved.getId());
+        RemoveOne( saved.getId(), mockMvc, auth);
         // Get all          
         mockMvc.perform(
                 get("{{mapping}}/all")
@@ -346,7 +348,7 @@ public class {{entityName}}CrudUnitTest {
                 {%-endif %} {% endfor %}
                 .andReturn();
         // Remove  last one 
-        RemoveOne(saved2.getId());        
+        RemoveOne(saved2.getId(), mockMvc, auth);
         // check Get all is empty     
         CheckAllEmpty();
     }
@@ -381,9 +383,10 @@ public class {{entityName}}CrudUnitTest {
     * 
     */
     public static {{entityName}} CreateAndSave(MockMvc movc, ObjectMapper mapp, {{entityName}}Service srvc, AuthToken authent) throws IOException, Exception {
-        log.debug(" Will CreateAndSave {{entityName}}  !.");
-        // Create  {{entityName}}       
+        // Create  {{entityName}}
         {{entityName}} ent = Create();
+        log.debug(" Will CreateAndSave {{entityName}}  !." +ent.toString());
+        log.warn( " !!!!!! the generated entity sent to server is ################### >" + asJsonString(ent));
         // Create {{entityName}} using API and verify returned One
         MvcResult mvcResult = movc.perform(
                 post("{{mapping}}/new")
@@ -413,12 +416,12 @@ public class {{entityName}}CrudUnitTest {
     /**
      * 
      */
-    public  void RemoveOne(String id) throws Exception{  
+    public static  void RemoveOne(String id, MockMvc movc, AuthToken authent) throws Exception{
         log.debug(" Will RemoveOne {{entityName}}  !.");
-        mockMvc.perform(
+        movc.perform(
                 delete("{{mapping}}/{id}", id)
                 {%- if security  %}                 
-                .header("Authorization", "Bearer "+auth.getToken())
+                .header("Authorization", "Bearer "+authent.getToken())
                 {%- endif  %}        
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
@@ -438,17 +441,17 @@ public class {{entityName}}CrudUnitTest {
      */
     public static  {{entityName}} Update({{entityName}} old) throws Exception  {
         {%- if 'User' == entity.name %}
-        // Add extra for User        
-        old.setLogin(HelperTests.randomString(10));  
-        old.setPassword(HelperTests.randomString(10)); 
+        // Add extra for User
+        old.setLogin(HelperTests.randomString(10));
         old.setFirstName(HelperTests.randomString(10));
         old.setLastName(HelperTests.randomString(10));
-        old.setPassword(HelperTests.randomString(10));
+        {%- if security  %}
+        old.setPassword(BCrypt.hashpw(HelperTests.randomString(7), Constants.SIGNING_KEY));
+        {%- endif  %}
         old.setEmail(HelperTests.randomString(10)+"@blabla.com");
         old.setLangKey("EN");
         old.setImageUrl(HelperTests.randomString(10));
         old.setActivated(true);
-        log.debug(" ##### Updating {{entityName}} >> "+old);
         {%- endif %}
         {%- for field in entity.fields | sort(attribute='name') %}
                 {%- if ('int' == field.type) or ('Integer' == field.type) %}
@@ -460,18 +463,19 @@ public class {{entityName}}CrudUnitTest {
         old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomMail());
                         {#- To add support here  for more annotations #}     
                         {%- else %}
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(100));                        
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(10));
                         {%- endif %} 
                 {%- else %}          
                         {%- if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !        
-        // not really needed to change foregni keys
+        // not really needed to change foreign keys
         // old.set{{field.name[0]|upper}}{{field.name[1:]}}(({{field.foreignEntity}})hm.get("{{field.foreignEntity}}"));
                         {%- else %}
         old.set{{field.name[0]|upper}}{{field.name[1:]}}(new {{field.type}}());  //TODO {{field.type }} Not supported type yet : easy to do!                
                         {%- endif %}                 
                 {%- endif %}
-        {%- endfor %}          
+        {%- endfor %}
+        log.debug(" ##### Updating {{entityName}} >> "+old);
         return old;
     }
     
@@ -486,6 +490,7 @@ public class {{entityName}}CrudUnitTest {
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
         {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}CrudUnitTest.CreateAndSave(mockMvc, mapper, fk{{field.foreignEntity}}service, auth);
+
         hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});        
         {%-endif %} {% endfor %}          
     }
@@ -496,8 +501,7 @@ public class {{entityName}}CrudUnitTest {
         {%- for field in entity.fields %}{%- if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's remove it once done wuth test !        
         {{field.foreignEntity}} dep{{field.foreignEntity}} = ({{field.foreignEntity}}) hm.get("{{field.foreignEntity}}");
-        {{field.foreignEntity}}CrudUnitTest  {{field.foreignEntity}}tst = new {{field.foreignEntity}}CrudUnitTest();
-        {{field.foreignEntity}}tst.RemoveOne(dep{{field.foreignEntity}}.getId());        
+        {{field.foreignEntity}}CrudUnitTest.RemoveOne(dep{{field.foreignEntity}}.getId(), mockMvc, auth);
         hm.remove("{{field.foreignEntity}}");        
         {%-endif %} {% endfor %}                  
     }
