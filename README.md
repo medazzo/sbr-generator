@@ -7,94 +7,93 @@
 SBR generator is a Spring Boot Rest Generator npm binary cli used to generate source code modules starting from config file .
 The Generated source code is a CRUD Rest Spring Boot Server, ready to build and run .  
 
-## How to install 
-It's a node binary , can be installed by 
+## How to install
+It's a node package with CLI (command line interface) binary , can be installed by
 ```
 npm install -g sbr-generator
 ```
 ### Prerequisites
-To work correctly nsbr need some python modules to be installed :   
+To work correctly *SBR* needs python to be installed .
+All needed python mudules with be installed automatically when installing *SBR*.
+
+## How To use
+To Generate a ready to use Spring boot Rest Server , *SBR* need a configuration file
+You can start by using the example one    
 ```
-pip install jinja2
-pip install pyyaml
-pip install coloredlogs
-```
-## How To use 
-sbr need a config file , you can use the example one    
-```
-~$ sbrgen  -h 
-usage: SBR Generator [-h] [-v] -c CONFIGFILE [-o OUTPUTDIR]
+~$ sbrgen  -h
+usage: SBR Generator [-h] [-v] [-t] [-s] -c CONFIGFILE [-o OUTPUTDIR]
 
 SBR generator: Generate Spring Boot Rest source code.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -v, --verbose         Enable verbose traces
-  -c CONFIGFILE, --config CONFIGFILE
+  -v, --mode-verbose    Enable verbose traces
+  -t, --enable-tests    Enable tests
+  -s, --disable-security
+                        Disable security
+  -c CONFIGFILE, --config-file CONFIGFILE
                         The Yaml config file
   -o OUTPUTDIR, --outputDir OUTPUTDIR
                         The Output folder where to store generated source code
 
-~$ cd examples 
-~$ sbrgen  -v  -c config.yaml
-...
 ```
-This will generate the next folder :
+Additionally , *SBR* support :
+* Verobse mode using *-v*
+* Disabling Security based on spring role and JWT token mode using *-s*
+* Enabling generating tests using  *-t*
+
+Like Below, to generate project with security enabled and tests using example config file :
 ```
-$ tree serverTest-0.0.1-SNAP/
+~$ sbrgen  -v -t -c  examples/config.yaml
+
+```
+This will generate the next folder strcutue :
+```
+$  tree serverTest-0.0.1-SNAP/
 serverTest-0.0.1-SNAP/
 ├── pom.xml
 ├── README.md
 └── src
-    └── main
-        ├── java
-        │   └── com
-        │       └── easin
-        │           └── serverTest
-        │               ├── Application.java
-        │               ├── controllers
-        │               │   ├── AddressController.java
-        │               │   ├── CompanyController.java
-        │               │   ├── IController.java
-        │               │   ├── LegalController.java
-        │               │   ├── MyErrorController.java
-        │               │   ├── StatusController.java
-        │               │   └── UserController.java
-        │               ├── entities
-        │               │   ├── Address.java
-        │               │   ├── BaseEntity.java
-        │               │   ├── Company.java
-        │               │   ├── Legal.java
-        │               │   └── User.java
-        │               ├── exceptions
-        │               │   ├── ResourceBadParameterException.java
-        │               │   └── ResourceNotFoundException.java
-        │               ├── repositories
-        │               │   ├── AddressRepository.java
-        │               │   ├── CompanyRepository.java
-        │               │   ├── LegalRepository.java
-        │               │   └── UserRepository.java
-        │               ├── RequestLoggingFilterConfig.java
-        │               ├── services
-        │               │   ├── AddressService.java
-        │               │   ├── CompanyService.java
-        │               │   ├── IService.java
-        │               │   ├── LegalService.java
-        │               │   └── UserService.java
-        │               ├── SwaggerConfiguration.java
-        │               └── WebInitializer.java
-        └── resources
-            ├── application.yaml
-            └── log4j2.xml
+    ├── main
+    │   ├── java
+    │   │   └── com
+    │   │       └── easin
+    │   │           └── serverTest
+    │   │               ├── Application.java
+    │   │               ├── conf
+    │   │               │   └── ....java
+    │   │               ├── controllers    
+    │   │               │   └── ....java
+    │   │               ├── entities    
+    │   │               │   └── ...java
+    │   │               ├── exceptions    
+    │   │               │   └── ...java
+    │   │               ├── repositories    
+    │   │               │   └── ....java
+    │   │               ├── security
+    │   │               │   ├── api
+    │   │               │   │   └── ...java
+    │   │               │   └── ...java
+    │   │               └── services
+    │   │                   └── ...java
+    │   └── resources
+    │       ├── application.yaml
+    │       ├── data.sql
+    │       └── log4j2.xml
+    └── test
+        └── java
+            └── com
+                └── easin
+                    └── serverTest
+                        └── ...java
 
-12 directories, 31 files
 ```
 
-## How to use Generated source code 
+## How to use Generated source code
 
-The generated source code is a spring boot rest maven project wit ha read me file , ready to use : 
+The generated source code is a spring boot rest maven project with a read me file ,a complete project ready to use :
 
-To build and Run server :
+To build and Run   :
 ```
 cd testServer-0.0.1/
 mvn clean package -Dmaven.test.skip=true
@@ -102,7 +101,7 @@ mvn spring-boot:run -Dmaven.test.skip=true
 
 ```
 
-To Run  Crud unit tests ( already generated :
+To Run  Crud unit tests ( already generated ):
 
 ```
 cd testServer-0.0.1/
@@ -111,7 +110,24 @@ mvn test
 
 # Configuration File
 
-The Configuration is a yaml file having multiple.
+The Configuration is a yaml file having 3 sections : project, logging  and entities.
+
+## project section
+Contains all project specific data used in the pom file and the Readme and in sourec conde generations ..
+```yaml
+project:
+    longname: Easy Soft IN Selling Server # the project long name used in the pom files and the Readme     
+    description: Easin Selling Server     # a description for the project
+    url: http://easysoft-in.com           # the url of the project
+    name: serverTest                      # the short name
+    restPath: /serverTest                 # the rest base path generated
+    package: com.easin.serverTest         # the package of the project
+    version: 0.0.1-SNAP                   # the version of the prpoject
+    security:                             # security data if activated to generate
+      extraroles:                         # security extra roles (*SBR* already manage admin and user) please do not prefix roles with ROLE_ !      
+        - "PROVIDER"
+        - "CONSUMER"
+```
 
 ## logging section
 it will be used to generate the **src/main/resources/log4j2.xml** file , extra configuration need to be added manually to the file .
@@ -128,7 +144,9 @@ logging:
 ```
 
 ## entitiess section
-This section is used to generate java package responsible for entity's : @Entity class and  JpaRepository for each one , also it schould generate action script definition foe theses entity to be used in front end 
+This section is used to generate java package  for entity's, services, controllers,  and beyond : @Entity class and  JpaRepository for each one ..
+**User**: be Aware that the *User* entity is specific as it already managed by *SBR*, when using it on your entity, *SBR* will merge your fiels and his.
+
 ```yaml
 entities:
   - name: User
@@ -166,17 +184,10 @@ entities:
 
 ## How it's Works
 
-Starting from defined entity's , entity's , controller's ,repository's will be generated.
+*SBR* is using pytoon and jinja2 Template machine..
+*SBR* wil lalso generaye **Swapper html api** pages on : **
 
-# Next steps
-
-## generate tests
-
-Tests will be generated under src/test/ based on tests templates .
-
-## Security layer
-
-  security will be based on role and user's token with spring-security
-
-## mail 
-  to do later ..
+It Can be found under <br/>
+ [http://localhost:8080/project.name/project.version/swagger-ui.html](http://localhost:8080/serverTest/0.0.1-SNAP/swagger-ui.html)
+OR json format under <br/>
+ [http://localhost:8080/project.name/project.version/v2/api-docs](http://localhost:8080/serverTest/0.0.1-SNAP/v2/api-docs)
