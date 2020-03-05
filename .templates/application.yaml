@@ -18,7 +18,7 @@ spring:
   datasource:
     url: jdbc:h2:/tmp/{{project.name}}/sbr-gen-database.h2;DB_CLOSE_ON_EXIT=FALSE
     username: easin
-    password: 
+    password:
     driverClassName: org.h2.Driver
   jpa:
     generate-ddl: true
@@ -49,7 +49,7 @@ spring:
   datasource:
     url: jdbc:h2:mem:test;DB_CLOSE_ON_EXIT=FALSE
     username: easin
-    password: 
+    password:
     driverClassName: org.h2.Driver
     jpa:
       generate-ddl: true
@@ -58,7 +58,7 @@ spring:
           default_schema: public
           dialect: org.hibernate.dialect.H2Dialect
       hibernate:
-        ddl-auto: create
+        ddl-auto: create-drop
       show-sql: true
     jackson:
       serialization:
@@ -89,7 +89,7 @@ spring:
           default_schema: public
           dialect: org.hibernate.dialect.PostgreSQL82Dialect
       hibernate:
-        ddl-auto: update
+        ddl-auto: none
       show-sql: true
     jackson:
       serialization:

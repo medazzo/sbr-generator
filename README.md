@@ -185,9 +185,9 @@ entities:
 ## How it's Works
 
 *SBR* is using pytoon and jinja2 Template machine..
-*SBR* wil lalso generaye **Swapper html api** pages on : **
+*SBR* wil lalso generaye **Swapper html api** pages on :
 
 It Can be found under <br/>
- [http://localhost:8080/project.name/project.version/swagger-ui.html](http://localhost:8080/serverTest/0.0.1-SNAP/swagger-ui.html)
-OR json format under <br/>
- [http://localhost:8080/project.name/project.version/v2/api-docs](http://localhost:8080/serverTest/0.0.1-SNAP/v2/api-docs)
+http://localhost:8080/project.name/project.version/swagger-ui.html
+<br/>OR json format under <br/>
+http://localhost:8080/project.name/project.version/v2/api-docs
