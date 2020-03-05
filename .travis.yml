@@ -8,7 +8,11 @@ virtualenv:
   system_site_packages: true
 script:
     - npm run buildTemplates
-    - npm run testFullBuildNoTests
-    - npm run testMinBuildNoTests
-    - npm run testMinBuildAndDoTests
-    - npm run testFullBuildAndDoTests
+    - echo " >>>>>>>>>>>>>> Testing testFullBuildNoTests"
+    - npm run testFullBuildNoTests > /dev/null
+    - echo " >>>>>>>>>>>>>> Testing testMinBuildNoTests"
+    - npm run testMinBuildNoTests > /dev/null
+    - echo " >>>>>>>>>>>>>> Testing testMinBuildAndDoTests"
+    - npm run testMinBuildAndDoTests > /dev/null
+    - echo " >>>>>>>>>>>>>> Testing testFullBuildAndDoTests"
+    - npm run testFullBuildAndDoTests > /dev/null
