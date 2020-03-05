@@ -13,7 +13,7 @@ from easinAnalyser import ConfigLoader, Analyser
 from easinModels import Project, Helper
 import pprint, os, shutil
 import jinja2
-import uuid 
+import uuid
 import bcrypt
 from jinja2 import Environment, BaseLoader
 from easinTemplates import templates
@@ -94,6 +94,11 @@ class Generator:
         self.__pathTemplate = os.getcwd() + "/" + Generator.Template_Dir
         loader = jinja2.FileSystemLoader(searchpath=self.__pathTemplate)
         self.templateEnv = jinja2.Environment(loader=loader)
+        # generating dome mails
+        self.mail_prefix = Helper.randomString(5)
+        self.umail_prefix = Helper.randomString(5)
+        self.amail = self.mail_prefix+"_admin@admin.com"
+        self.umail = self.umail_prefix+"_user@user.com"
 
     def generate(self):
         Helper.logger.info("Generate Base ==>   ")
@@ -115,6 +120,7 @@ class Generator:
             # Generate
             Helper.logger.debug("> Generating Classes for Entity {} .".format(ent.name))
             output = self.templateEntity.render(package=self.__project.package + "." + Project.Entities_folder,
+                                                security=self.security,
                                                 entity=ent).encode("utf-8")
             f = open(self.entityDirs + '/' + ent.name + '.java', 'wb')
             f.write(output)
@@ -156,7 +162,7 @@ class Generator:
                 # Generate and overwrite the user entity, repositories and service
                 Helper.logger.debug("> Generating User Class  {} .".format(ent.name))
                 templateUserEntity = Environment(loader=BaseLoader()).from_string(templates[Generator.UserEntity_Template])
-                output = templateUserEntity.render( package=self.__project.package + "." + Project.Entities_folder,
+                output = templateUserEntity.render( package=self.__project.package + "." + Project.Entities_folder,security=self.security,
                                                     configConstants=self.__project.package + "." + Project.Conf_folder ,
                                                     entity=ent).encode("utf-8")
                 f = open(self.entityDirs + '/' + ent.name + '.java', 'wb')
@@ -288,7 +294,7 @@ class Generator:
         Helper.logger.debug("> Generating Swagger Config files ..")
         template = Environment(loader=BaseLoader()).from_string(templates[Generator.SwaggerConfig_Template])
         output = template.render(package=self.__project.package + '.' + Project.Conf_folder,
-                                 ApiPrefix=Project.ApiPrefix, 
+                                 ApiPrefix=Project.ApiPrefix,
                                  project=self.__project).encode("utf-8")
         f = open(self.appDirs + '/' + Generator.SwaggerConfig_Template, 'wb')
         f.write(output)
@@ -336,21 +342,36 @@ class Generator:
             # Generate
             Helper.logger.debug("> Generating Crud tests file for Entity {} .".format(ent.name))
             template = Environment(loader=BaseLoader()).from_string(templates[Generator.CrudTest_Template])
-            output = template.render(package=self.__project.package,
-                                     packageAuth=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder,
-                                     security=self.security,
-                                     aemail=self.amail,
-                                     uemail=self.umail,
-                                     apassword=self.apassword,
-                                     upassword=self.upassword,
-                                     Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
-                                     Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name + Project.Service_prepend,
-                                     ServiceBasepackage=self.__project.package + "." + Project.Services_folder,
-                                     EntityBasepackage=self.__project.package + "." + Project.Entities_folder,
-                                     entityName=ent.name,
-                                     packageConstants=self.__project.package + "." + Project.Conf_folder,
-                                     mapping=Project.ApiPrefix + ent.name.lower(),
-                                     entity=ent).encode("utf-8")
+            if self.security:
+                output = template.render(package=self.__project.package,
+                                         packageAuth=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder,
+                                         security=self.security,
+                                         aemail=self.amail,
+                                         uemail=self.umail,
+                                         apassword=self.apassword,
+                                         upassword=self.upassword,
+                                         Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
+                                         Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name + Project.Service_prepend,
+                                         ServiceBasepackage=self.__project.package + "." + Project.Services_folder,
+                                         EntityBasepackage=self.__project.package + "." + Project.Entities_folder,
+                                         entityName=ent.name,
+                                         packageConstants=self.__project.package + "." + Project.Conf_folder,
+                                         mapping=Project.ApiPrefix + ent.name.lower(),
+                                         entity=ent).encode("utf-8")
+            else:
+                output = template.render(package=self.__project.package,
+                                         packageAuth=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder,
+                                         security=self.security,
+                                         aemail=self.amail,
+                                         uemail=self.umail,
+                                         Entitypackage=self.__project.package + "." + Project.Entities_folder + "." + ent.name,
+                                         Servicepackage=self.__project.package + "." + Project.Services_folder + "." + ent.name + Project.Service_prepend,
+                                         ServiceBasepackage=self.__project.package + "." + Project.Services_folder,
+                                         EntityBasepackage=self.__project.package + "." + Project.Entities_folder,
+                                         entityName=ent.name,
+                                         packageConstants=self.__project.package + "." + Project.Conf_folder,
+                                         mapping=Project.ApiPrefix + ent.name.lower(),
+                                         entity=ent).encode("utf-8")
             f = open(self.__testdir + '/' + ent.name + Generator.CrudTest_Template, 'wb')
             f.write(output)
             f.close()
@@ -412,9 +433,9 @@ class Generator:
         f = open(self.securityDirs + '/' + Generator.JwtAuthenticationFilter_Template, 'wb')
         f.write(output)
         f.close()
-        # Generate Auth controller 
+        # Generate Auth controller
         Helper.logger.debug("> Generating Authentication Controller .")
-        template = Environment(loader=BaseLoader()).from_string(templates[Generator.AuthenticationController_Template])        
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.AuthenticationController_Template])
         output = template.render(package=self.__project.package + "." + Project.Controllers_folder,
                                                 EntitypackageUser=self.__project.package + "." + Project.Entities_folder + ".User",
                                                 Securitypackage=self.__project.package + "." +  Project.Security_folder,
@@ -422,48 +443,44 @@ class Generator:
                                                 mapping=Project.ApiPrefix + "auth").encode("utf-8")
         f = open(self.controllersDirs + '/' + Generator.AuthenticationController_Template , 'wb')
         f.write(output)
-        f.close()     
+        f.close()
         # Generate Security Api files
         Helper.logger.debug("> Generating Security Api classe Auth token .")
-        template = Environment(loader=BaseLoader()).from_string(templates[Generator.AuthToken_Template])        
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.AuthToken_Template])
         output = template.render(package=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder,
                                                 EntitypackageUser=self.__project.package + "." + Project.Entities_folder + ".User"  ).encode("utf-8")
         f = open(self.securityApiDirs + '/' + Generator.AuthToken_Template , 'wb')
         f.write(output)
-        f.close()              
+        f.close()
         Helper.logger.debug("> Generating Security Api classe Login User .")
-        template = Environment(loader=BaseLoader()).from_string(templates[Generator.LoginUser_Template])        
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.LoginUser_Template])
         output = template.render(package=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder).encode("utf-8")
         f = open(self.securityApiDirs + '/' + Generator.LoginUser_Template , 'wb')
         f.write(output)
-        f.close()              
+        f.close()
         # Generate DATA SQL file to be injected in database
         Helper.logger.debug("> Generating  data.sql file .")
-        template = Environment(loader=BaseLoader()).from_string(templates[Generator.Data_Template]) 
+        template = Environment(loader=BaseLoader()).from_string(templates[Generator.Data_Template])
         passwd =  Helper.randomString(5)
-        upasswd =  Helper.randomString(5)    
+        upasswd =  Helper.randomString(5)
         # Usinb bcryt for passwords
         pwdhash = bcrypt.hashpw(passwd.encode(), self.key )
         upwdhash = bcrypt.hashpw(upasswd.encode(), self.key )
-        mail_prefix = Helper.randomString(5)
-        umail_prefix = Helper.randomString(5)
-        self.amail = mail_prefix+"_admin@admin.com"
-        self.umail = umail_prefix+"_user@user.com"
         self.apassword = passwd
         self.upassword = upasswd
         output = template.render(   uuid=uuid.uuid1() ,
                                     uuuid=uuid.uuid1() ,
-                                    password=pwdhash.decode(), 
-                                    upassword=upwdhash.decode(), 
+                                    password=pwdhash.decode(),
+                                    upassword=upwdhash.decode(),
                                     passwordclear=passwd,
                                     upasswordclear=upasswd,
-                                    login=mail_prefix+"Admin",
-                                    ulogin=umail_prefix+"User",
+                                    login=self.mail_prefix+"Admin",
+                                    ulogin=self.umail_prefix+"User",
                                     mail=self.amail,
                                     umail=self.umail).encode("utf-8")
         f = open(self.outputDir + Project.Resources_Dir + '/' + Generator.Data_Template , 'wb')
         f.write(output)
-        f.close()             
+        f.close()
 
 
     """ To string type method """

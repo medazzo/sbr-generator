@@ -45,12 +45,12 @@ public class User extends BaseEntity {
     @Size(min = 1, max = 50)
     @Column(length = 50, unique = true, nullable = false)
     private String login;
-
+{%- if security %}
     @NotNull
     @Size(min = 60, max = 128)
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
-
+{%- endif %}
     @Size(max = 50)
     @Column(name = "first_name", length = 50)
     private String firstName;

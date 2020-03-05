@@ -3,14 +3,8 @@ python:
   - "2.7"
   - "3.5"
 install:
-  - pip install -r requirements.txt
+  - npm install
 virtualenv:
   system_site_packages: true
 script:
-    - python easinGenerator.py  -c examples/config.yaml
-    - npm install
-    - npm run buildTemplates
-    - npm run test
-    - cd serverTest-0.0.1-SNAP/
-    - mvn package -Dmaven.test.skip=true
-    - mvn install -Dmaven.test.skip=true
+    - npm test

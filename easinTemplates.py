@@ -475,13 +475,15 @@ public class {{entityName}}CrudUnitTest {
     @Autowired
     private {{field.foreignEntity}}Service fk{{field.foreignEntity}}service;
 {%-endif %} {% endfor %}
+{%- if security %}
     private AuthToken auth ;
+{%-endif %}
     Map<String, Object> hm = new HashMap<>();
     @Autowired
     private ObjectMapper mapper;
 
     {%- if security  %}
-    public  AuthToken DoUserAuthentication() throws Exception {        
+    public  AuthToken DoUserAuthentication() throws Exception {
         String body = "{\\\"email\\\":\\\"{{uemail}}\\\",\\\"password\\\":\\\"{{upassword}}\\\"}";
         log.debug(" Try to authenticate  user '{{uemail}}'' with his password '{{upassword}}'.");
         MvcResult result = mockMvc.perform(
@@ -497,7 +499,7 @@ public class {{entityName}}CrudUnitTest {
         return authGetted;
     }
 
-    public  AuthToken DoAdminAuthentication() throws Exception {                
+    public  AuthToken DoAdminAuthentication() throws Exception {
         String body = "{\\\"email\\\":\\\"{{aemail}}\\\", \\\"password\\\":\\\"{{apassword}}\\\"}";
         log.debug(" Try to authenticate  Admin '{{aemail}}'' with his password '{{apassword}}'.");
         MvcResult result = mockMvc.perform(
@@ -530,42 +532,54 @@ public class {{entityName}}CrudUnitTest {
     @Test
     public void {{entityName}}CreateTest() throws Exception {
         log.debug(" in {{entityName}}  CreateTest !.");
-        {%- if security  %}                 
+        {%- if security  %}
         auth = DoAdminAuthentication() ;
-        {%- endif  %} 
-        // check Get all is empty     
+        {%- endif  %}
+        // check Get all is empty
         CheckAllEmpty();
         // Create Test {{entityName}} Object
+{%- if security %}
         {{entityName}} created = CreateAndSave(mockMvc, mapper, service, auth);
+{%- else %}
+        {{entityName}} created = CreateAndSave(mockMvc, mapper, service);
+{%- endif %}
         // Remove the Created {{entityName}}
+{%- if security  %}
         RemoveOne( created.getId(), mockMvc, auth);
-        // check Get all is empty     
+{%- else  %}
+        RemoveOne( created.getId(), mockMvc);
+{%- endif  %}
+        // check Get all is empty
         CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}ReadTest() throws Exception {
         log.debug(" in {{entityName}}  ReadTest !.");
-        {%- if security  %}                 
+        {%- if security  %}
         auth = DoAdminAuthentication() ;
-        {%- endif  %}                
+        {%- endif  %}
 
         // check Get all is 0
         CheckAllEmpty();
         // Create Test {{entityName}} Object
+{%- if security %}
         {{entityName}} saved = CreateAndSave(mockMvc, mapper, service, auth);
+{%- else %}
+        {{entityName}} saved = CreateAndSave(mockMvc, mapper, service);
+{%- endif %}
         // Get {{entityName}} using API and verify returned One
         MvcResult mvcgResult = mockMvc.perform(
                 get("{{mapping}}/{id}", saved.getId())
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
                 .andReturn();
@@ -574,10 +588,15 @@ public class {{entityName}}CrudUnitTest {
         {{entityName}} found = service.getOne(getted.getId());
         assertEquals(found.getId(), getted.getId());
         {%- for field in entity.fields %} {% if not field.foreignKey  %}
-        assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
+        assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());
         {%-endif %} {% endfor %}
         // Remove the Created {{entityName}}
+{%- if security  %}
         RemoveOne( found.getId(), mockMvc, auth);
+{%- else  %}
+        RemoveOne( found.getId(), mockMvc);
+{%- endif  %}
+
         // check Get all is 0
         CheckAllEmpty();
     }
@@ -585,116 +604,136 @@ public class {{entityName}}CrudUnitTest {
     @Test
     public void {{entityName}}ReadAllTest() throws Exception {
         log.debug(" in {{entityName}}  ReadAllTest !.");
-        {%- if security  %}                 
+        {%- if security  %}
         auth = DoAdminAuthentication() ;
-        {%- endif  %}   
-        // Get all          
+        {%- endif  %}
+        // Get all
         CheckAllEmpty();
         // Create Test {{entityName}} Object
+{%- if security %}
         {{entityName}} saved = CreateAndSave(mockMvc, mapper, service, auth);
+{%- else %}
+        {{entityName}} saved = CreateAndSave(mockMvc, mapper, service);
+{%- endif %}
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-{%- if 'User' == entity.name %}
+{%- if 'User' == entity.name and security is sameas true %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
                 {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
-                {%-endif %} {% endfor %}                
+                {%-endif %} {% endfor %}
 {%- else %}
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))               
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
                 {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
-                {%-endif %} {% endfor %}                
+                {%-endif %} {% endfor %}
 {%- endif %}
                 .andReturn();
         // Create Another Test {{entityName}} Object
+{%- if security %}
         {{entityName}} saved2 = CreateAndSave(mockMvc, mapper, service, auth);
-        // Get all 
+{%- else %}
+        {{entityName}} saved2 = CreateAndSave(mockMvc, mapper, service);
+{%- endif %}
+        // Get all
         mockMvc.perform(
                 get("{{mapping}}/all")
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-{%- if 'User' == entity.name %}
+{%- if 'User' == entity.name and security is sameas true  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(4)))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[3].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
 {%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[1].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-{%- endif %}                                
+{%- endif %}
                 .andReturn();
         // Remove the Created {{entityName}}
+{%- if security  %}
         RemoveOne( saved.getId(), mockMvc, auth);
+{%- else  %}
+        RemoveOne( saved.getId(), mockMvc);
+{%- endif  %}
         // Remove the Created {{entityName}}
+{%- if security  %}
         RemoveOne( saved2.getId(), mockMvc, auth);
-        // check Get all is empty     
+{%- else  %}
+        RemoveOne( saved2.getId(), mockMvc);
+{%- endif  %}
+        // check Get all is empty
         CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}UpdateTest() throws Exception {
         log.debug(" in {{entityName}}  UpdateTest !.");
-        {%- if security  %}                 
+        {%- if security  %}
         auth = DoAdminAuthentication() ;
-        {%- endif  %}   
-        // Get all          
+        {%- endif  %}
+        // Get all
         CheckAllEmpty();
         // Create Test {{entityName}} Object
+{%- if security %}
         {{entityName}} saved = CreateAndSave(mockMvc, mapper, service, auth);
+{%- else %}
+        {{entityName}} saved = CreateAndSave(mockMvc, mapper, service);
+{%- endif %}
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-{%- if 'User' == entity.name %}
+{%- if 'User' == entity.name  and security is sameas true %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
 {%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-{%- endif %}                                
+{%- endif %}
                 .andReturn();
-        // Update 
+        // Update
         {{entityName}} updt = Update(saved);
-        // Get Update on Server          
+        // Get Update on Server
         MvcResult mvcResult = mockMvc.perform(
                 put("{{mapping}}/{id}", saved.getId())
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(updt))
         )
@@ -702,7 +741,7 @@ public class {{entityName}}CrudUnitTest {
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("id").value(updt.getId()))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(updt.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
                 .andReturn();
@@ -710,111 +749,132 @@ public class {{entityName}}CrudUnitTest {
         {{entityName}} getted = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = service.getOne(getted.getId());
         assertEquals(found.getId(), getted.getId());
-        {%- for field in entity.fields %} {% if not field.foreignKey  %} 
-        assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());        
+        {%- for field in entity.fields %} {% if not field.foreignKey  %}
+        assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), getted.get{{field.name[0]|upper}}{{field.name[1:]}}());
         {%-endif %} {% endfor %}
          // Remove the Created {{entityName}}
+ {%- if security  %}
          RemoveOne( getted.getId(), mockMvc, auth);
-        // check Get all is empty     
+ {%- else  %}
+         RemoveOne( getted.getId(), mockMvc);
+ {%- endif  %}
+        // check Get all is empty
         CheckAllEmpty();
     }
 
     @Test
     public void {{entityName}}DeleteTest() throws Exception {
         log.debug(" in {{entityName}}  DeleteTest !.");
-        {%- if security  %}                 
+        {%- if security  %}
         auth = DoAdminAuthentication() ;
-        {%- endif  %}   
+        {%- endif  %}
         // check Get all is 0
         CheckAllEmpty();
         // Create Test {{entityName}} Object
+{%- if security %}
         {{entityName}} saved = CreateAndSave(mockMvc, mapper, service, auth);
+{%- else %}
+        {{entityName}} saved = CreateAndSave(mockMvc, mapper, service);
+{%- endif %}
         // Get All
         mockMvc.perform(
                 get("{{mapping}}/all")
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-{%- if 'User' == entity.name %}
+{%- if 'User' == entity.name  and security is sameas true %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
 {%- else %}
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))             
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-{%- endif %}                 
+{%- endif %}
                 .andReturn();
         // Create Another Test {{entityName}} Object
+{%- if security %}
         {{entityName}} saved2 = CreateAndSave(mockMvc, mapper, service, auth);
-        // Get all          
+{%- else %}
+        {{entityName}} saved2 = CreateAndSave(mockMvc, mapper, service);
+{%- endif %}
+        // Get all
         mockMvc.perform(
                 get("{{mapping}}/all")
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-{%- if 'User' == entity.name %}
+{%- if 'User' == entity.name  and security is sameas true %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(4)))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[3].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
 {%- else %}
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))            
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[1].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-{%- endif %}                  
+{%- endif %}
                 .andReturn();
-        // Remove  first one 
+        // Remove  first one
+{%- if security  %}
         RemoveOne( saved.getId(), mockMvc, auth);
-        // Get all          
+{%- else  %}
+        RemoveOne( saved.getId(), mockMvc);
+{%- endif  %}
+
+        // Get all
         mockMvc.perform(
                 get("{{mapping}}/all")
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-{%- if 'User' == entity.name %}
+{%- if 'User' == entity.name  and security is sameas true %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
 {%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
-{%-endif %}                
+{%-endif %}
                 .andReturn();
-        // Remove  last one 
-        RemoveOne(saved2.getId(), mockMvc, auth);
-        // check Get all is empty     
+        // Remove  last one
+{%- if security  %}
+        RemoveOne( saved2.getId(), mockMvc, auth);
+{%- else  %}
+        RemoveOne( saved2.getId(), mockMvc);
+{%- endif  %}
+        // check Get all is empty
         CheckAllEmpty();
     }
     /**
-     * 
+     *
      */
     public void CheckAllEmpty()  throws  Exception{
 {%- if 'User' == entity.name %}
@@ -825,25 +885,29 @@ public class {{entityName}}CrudUnitTest {
         // check Get all is 0
         mockMvc.perform(
                 get("{{mapping}}/all")
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+auth.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-{%- if 'User' == entity.name %}
+{%- if 'User' == entity.name  and security is sameas true %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)));
 {%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(0)));
-{%- endif %}                
+{%- endif %}
 
     }
     /**
-    * 
+    *
     */
+{%- if security  %}
     public static {{entityName}} CreateAndSave(MockMvc movc, ObjectMapper mapp, {{entityName}}Service srvc, AuthToken authent) throws IOException, Exception {
+{%- else %}
+    public static {{entityName}} CreateAndSave(MockMvc movc, ObjectMapper mapp, {{entityName}}Service srvc) throws IOException, Exception {
+{%- endif %}
         // Create  {{entityName}}
         {{entityName}} ent = Create();
         log.debug(" Will CreateAndSave {{entityName}}  !." +ent.toString());
@@ -851,9 +915,9 @@ public class {{entityName}}CrudUnitTest {
         // Create {{entityName}} using API and verify returned One
         MvcResult mvcResult = movc.perform(
                 post("{{mapping}}/new")
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+authent.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(ent))
         )
@@ -861,7 +925,7 @@ public class {{entityName}}CrudUnitTest {
                 .andDo(print())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("id").isNotEmpty())
-                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(ent.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
                 .andReturn();
@@ -869,36 +933,40 @@ public class {{entityName}}CrudUnitTest {
         {{entityName}} saved = mapp.readValue(mvcResult.getResponse().getContentAsByteArray(), {{entityName}}.class);
         {{entityName}} found = srvc.getOne(saved.getId());
         assertEquals(found.getId(), saved.getId());
-        {%- for field in entity.fields %} {% if not field.foreignKey  %} 
-        assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), saved.get{{field.name[0]|upper}}{{field.name[1:]}}());        
-        {%-endif %} {% endfor %}// return         
+        {%- for field in entity.fields %} {% if not field.foreignKey  %}
+        assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), saved.get{{field.name[0]|upper}}{{field.name[1:]}}());
+        {%-endif %} {% endfor %}// return
         return found;
     }
     /**
-     * 
+     *
      */
+{%- if security  %}
     public static  void RemoveOne(String id, MockMvc movc, AuthToken authent) throws Exception{
+{%- else %}
+    public static  void RemoveOne(String id, MockMvc movc) throws Exception{
+{%- endif %}
         log.debug(" Will RemoveOne {{entityName}}  !.");
         movc.perform(
                 delete("{{mapping}}/{id}", id)
-                {%- if security  %}                 
+                {%- if security  %}
                 .header("Authorization", "Bearer "+authent.getToken())
-                {%- endif  %}        
+                {%- endif  %}
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andReturn();        
+                .andReturn();
     }
     /**
-     * 
+     *
      */
     public static {{entityName}} Create() throws  Exception{
         {{entityName}} ent = new {{entityName}}();
         return Update(ent);
     }
     /**
-     * 
+     *
      */
     public static  {{entityName}} Update({{entityName}} old) throws Exception  {
         {%- if 'User' == entity.name %}
@@ -916,30 +984,30 @@ public class {{entityName}}CrudUnitTest {
         {%- endif %}
         {%- for field in entity.fields | sort(attribute='name') %}
                 {%- if ('int' == field.type) or ('Integer' == field.type) %}
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomInteger(50));  
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomInteger(50));
                 {%- elif ('double' == field.type) or ('Double' == field.type)  %}
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomdouble()); 
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomdouble());
                 {%- elif 'String' == field.type %}
                         {%- if '@Email' in field.annotations  %}
         old.set{{field.name[0]|upper}}{{field.name[1:] }}(HelperTests.randomMail());
-                        {#- To add support here  for more annotations #}     
+                        {#- To add support here  for more annotations #}
                         {%- else %}
         old.set{{field.name[0]|upper}}{{field.name[1:]}}(HelperTests.randomString(10));
-                        {%- endif %} 
-                {%- else %}          
+                        {%- endif %}
+                {%- else %}
                         {%- if field.foreignKey  %}
-        //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !        
+        //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
         // not really needed to change foreign keys
         // old.set{{field.name[0]|upper}}{{field.name[1:]}}(({{field.foreignEntity}})hm.get("{{field.foreignEntity}}"));
                         {%- else %}
-        old.set{{field.name[0]|upper}}{{field.name[1:]}}(new {{field.type}}());  //TODO {{field.type }} Not supported type yet : easy to do!                
-                        {%- endif %}                 
+        old.set{{field.name[0]|upper}}{{field.name[1:]}}(new {{field.type}}());  //TODO {{field.type }} Not supported type yet : easy to do!
+                        {%- endif %}
                 {%- endif %}
         {%- endfor %}
         log.debug(" ##### Updating {{entityName}} >> "+old);
         return old;
     }
-    
+
     @PostConstruct
     @Before
     public void setUp() throws Exception {
@@ -950,24 +1018,31 @@ public class {{entityName}}CrudUnitTest {
         {%- endif  %}
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
+{%- if security %}
         {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}CrudUnitTest.CreateAndSave(mockMvc, mapper, fk{{field.foreignEntity}}service, auth);
-
-        hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});        
-        {%-endif %} {% endfor %}          
+{%- else %}
+        {{field.foreignEntity}} fk{{field.foreignEntity}} = {{field.foreignEntity}}CrudUnitTest.CreateAndSave(mockMvc, mapper, fk{{field.foreignEntity}}service);
+{%- endif %}
+        hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});
+        {%-endif %} {% endfor %}
     }
 
     @After
     public void tearDown() throws Exception {
         log.debug(" in  tearDown Test {{entityName}}  !.");
         {%- for field in entity.fields %}{%- if field.foreignKey  %}
-        //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's remove it once done wuth test !        
+        //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's remove it once done wuth test !
         {{field.foreignEntity}} dep{{field.foreignEntity}} = ({{field.foreignEntity}}) hm.get("{{field.foreignEntity}}");
+{%- if security  %}
         {{field.foreignEntity}}CrudUnitTest.RemoveOne(dep{{field.foreignEntity}}.getId(), mockMvc, auth);
-        hm.remove("{{field.foreignEntity}}");        
-        {%-endif %} {% endfor %}                  
+{%- else %}
+        {{field.foreignEntity}}CrudUnitTest.RemoveOne(dep{{field.foreignEntity}}.getId(), mockMvc);
+{%- endif %}
+        hm.remove("{{field.foreignEntity}}");
+        {%-endif %} {% endfor %}
     }
     /**
-     * 
+     *
      */
     private static String asJsonString(final Object obj) {
         try {
@@ -2070,12 +2145,12 @@ public class User extends BaseEntity {
     @Size(min = 1, max = 50)
     @Column(length = 50, unique = true, nullable = false)
     private String login;
-
+{%- if security %}
     @NotNull
     @Size(min = 60, max = 128)
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
-
+{%- endif %}
     @Size(max = 50)
     @Column(name = "first_name", length = 50)
     private String firstName;
