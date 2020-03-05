@@ -605,12 +605,15 @@ public class {{entityName}}CrudUnitTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 {%- if 'User' == entity.name %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
+                .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}                
 {%- else %}
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-{%- endif %}                
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))               
                 {%- for field in entity.fields %} {% if not field.foreignKey  %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}                
+{%- endif %}
                 .andReturn();
         // Create Another Test {{entityName}} Object
         {{entityName}} saved2 = CreateAndSave(mockMvc, mapper, service, auth);
@@ -627,15 +630,21 @@ public class {{entityName}}CrudUnitTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 {%- if 'User' == entity.name %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(4)))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
+                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$[3].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
 {%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-{%- endif %}                
                 {%- for field in entity.fields %} {% if not field.foreignKey  %} 
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
                 {%- for field in entity.fields %} {% if not field.foreignKey  %} 
                 .andExpect(MockMvcResultMatchers.jsonPath("$[1].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
+{%- endif %}                                
                 .andReturn();
         // Remove the Created {{entityName}}
         RemoveOne( saved.getId(), mockMvc, auth);
@@ -668,12 +677,15 @@ public class {{entityName}}CrudUnitTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 {%- if 'User' == entity.name %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
 {%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-{%- endif %}                
                 {%- for field in entity.fields %} {% if not field.foreignKey  %} 
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
+{%- endif %}                                
                 .andReturn();
         // Update 
         {{entityName}} updt = Update(saved);
@@ -730,12 +742,15 @@ public class {{entityName}}CrudUnitTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 {%- if 'User' == entity.name %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
 {%- else %}
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-{%- endif %}                
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))             
                 {%- for field in entity.fields %} {% if not field.foreignKey  %} 
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
+{%- endif %}                 
                 .andReturn();
         // Create Another Test {{entityName}} Object
         {{entityName}} saved2 = CreateAndSave(mockMvc, mapper, service, auth);
@@ -752,15 +767,21 @@ public class {{entityName}}CrudUnitTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 {%- if 'User' == entity.name %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(4)))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
+                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$[3].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
 {%- else %}
-                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))
-{%- endif %}                
+                .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(2)))            
                 {%- for field in entity.fields %} {% if not field.foreignKey  %} 
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
                 {%- for field in entity.fields %} {% if not field.foreignKey  %} 
                 .andExpect(MockMvcResultMatchers.jsonPath("$[1].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
+{%- endif %}                  
                 .andReturn();
         // Remove  first one 
         RemoveOne( saved.getId(), mockMvc, auth);
@@ -777,12 +798,15 @@ public class {{entityName}}CrudUnitTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 {%- if 'User' == entity.name %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(3)))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %} 
+                .andExpect(MockMvcResultMatchers.jsonPath("$[2].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
 {%- else %}
                 .andExpect(MockMvcResultMatchers.jsonPath("$", hasSize(1)))
-{%- endif %}                
                 {%- for field in entity.fields %} {% if not field.foreignKey  %} 
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].{{field.name}}").value(saved2.get{{field.name[0]|upper}}{{field.name[1:]}}()))
                 {%-endif %} {% endfor %}
+{%-endif %}                
                 .andReturn();
         // Remove  last one 
         RemoveOne(saved2.getId(), mockMvc, auth);
