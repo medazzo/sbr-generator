@@ -7,4 +7,8 @@ install:
 virtualenv:
   system_site_packages: true
 script:
-    - npm test
+    - npm run buildTemplates
+    - npm run testFullBuildNoTests
+    - npm run testMinBuildNoTests
+    - npm run testMinBuildAndDoTests
+    - npm run testFullBuildAndDoTests

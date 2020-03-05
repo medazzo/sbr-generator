@@ -8,12 +8,12 @@ project:
   package: com.easin.serverTest
   version: 0.0.1-SNAP
   security:
-    extraroles: # please do not prefix roles with ROLE_ !      
+    extraroles: # please do not prefix roles with ROLE_ !
       - "PROVIDER"
       - "CONSUMER"
     # from now security is activated always and cannot be disactivated
     # by default access is GRANTED for all entity for all roles
-    # can be changes once the code is generated     
+    # can be changes once the code is generated
 logging:
   RootLoggerLevel: INFO
   Loggers:
@@ -41,14 +41,14 @@ entities:
         annotations:
           - "@Column(nullable = false)"
         type: String
-  - name: Company        
+  - name: Company
     comment: Class representing the company parameters
     fields:
       - name: owner
         comment: User Owner  of the comapny
         annotations:
-          - "@ManyToOne"          
-        type: User      
+          - "@ManyToOne"
+        type: User
       - name: mail
         type: String
         comment: the official Mail of the company
@@ -75,7 +75,7 @@ entities:
         annotations:
           - "@Column(nullable = false)"
         type: String
-  - name: Address    
+  - name: Address
     comment: Class representing the Address parameters
     fields:
       - name: address
@@ -98,5 +98,3 @@ entities:
         annotations:
           - "@Column(nullable = false)"
         type: String
-
-
