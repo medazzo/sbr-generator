@@ -6,7 +6,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.HashSet;
 import java.util.List;
@@ -14,6 +13,9 @@ import java.util.Set;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import {{packageConstants}}.Constants;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import {{Entitypackage}};
 import {{Repositorypackage}};
@@ -26,9 +28,6 @@ public class UserService  implements  UserDetailsService, IService<User> {
 
     @Autowired
     private UserRepository erepo;
-
-    @Autowired
-     private BCryptPasswordEncoder bcryptEncoder;
 
      public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
      log.debug(" >>>>>>>>>>>>>> looking for user with email  " + email);
@@ -66,6 +65,8 @@ public class UserService  implements  UserDetailsService, IService<User> {
     @Override
     public User create(User n) {
         log.info("Saving new  User .. " + n.toString());
+        //Encrypt password , since first time it must bne clear, to be encrypted in DB then.
+        n.setPassword(BCrypt.hashpw(n.getPassword(), Constants.SIGNING_KEY));
         return erepo.save(n);
     }
 
