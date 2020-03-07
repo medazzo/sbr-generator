@@ -47,7 +47,7 @@ public class User extends BaseEntity {
     private String login;
 {%- if security %}
     @NotNull
-    @Size(min = 60, max = 128)
+    @Size(min = 7, max = 128)
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
 {%- endif %}
@@ -88,8 +88,11 @@ public class User extends BaseEntity {
 
     @Column(name = "reset_date")
     private Instant resetDate = null;
-
+    {%- if security %}
+    @NotNull
+    {%- else %}
     @JsonIgnore
+    {%- endif %}
     private String mainRole;
 
     /**
