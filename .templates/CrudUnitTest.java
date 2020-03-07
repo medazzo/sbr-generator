@@ -603,6 +603,7 @@ public class {{entityName}}CrudUnitTest {
         {%- if security  %}
         auth = DoAdminAuthentication() ;
         {%- endif  %}
+        /* could be used : tend to generate tests fails ; depeneds on tests order run !!
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
 {%- if security %}
@@ -612,11 +613,13 @@ public class {{entityName}}CrudUnitTest {
 {%- endif %}
         hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});
         {%-endif %} {% endfor %}
+        */
     }
 
     @After
     public void tearDown() throws Exception {
         log.debug(" in  tearDown Test {{entityName}}  !.");
+        /* could be used : tend to generate tests fails ; depeneds on tests order run !!
         {%- for field in entity.fields %}{%- if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's remove it once done wuth test !
         {{field.foreignEntity}} dep{{field.foreignEntity}} = ({{field.foreignEntity}}) hm.get("{{field.foreignEntity}}");
@@ -627,6 +630,7 @@ public class {{entityName}}CrudUnitTest {
 {%- endif %}
         hm.remove("{{field.foreignEntity}}");
         {%-endif %} {% endfor %}
+        */
     }
     /**
      *

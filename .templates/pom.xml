@@ -145,17 +145,17 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>            
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>            
+            <artifactId>httpclient</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
         <plugins>
-<!-- not really needed 
+<!-- not really needed
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -195,7 +195,7 @@
                     <path>{{pom.restPath}}</path>
                 </configuration>
             </plugin>
-            <!-- Removed : take much time in starting and traces 
+            <!-- Removed : take much time in starting and traces
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
@@ -231,7 +231,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
                 <configuration>
                     <source>11</source>
                     <target>11</target>

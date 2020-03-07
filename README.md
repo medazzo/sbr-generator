@@ -4,7 +4,8 @@
 [![Build Status](https://travis-ci.org/medazzo/sbr-generator.svg?branch=master)](https://travis-ci.org/medazzo/sbr-generator)
 [![npm version](https://badge.fury.io/js/sbr-generator.svg)](https://badge.fury.io/js/sbr-generator)
 
-SBR generator is a Spring Boot Rest Generator npm binary cli used to generate source code modules starting from config file .
+SBR generator is a Spring Boot Rest Generator npm binary cli used to generate source code modules starting from config file.<br/>
+
 The Generated source code is a CRUD Rest Spring Boot Server, ready to build and run .  
 
 ## How to install
@@ -184,10 +185,8 @@ entities:
 
 ## How it's Works
 
-*SBR* is using pytoon and jinja2 Template machine..
-*SBR* wil lalso generaye **Swapper html api** pages on :
-
-It Can be found under <br/>
+*SBR* is using python and jinja2 Template machine..
+*SBR* will also generate **Swapper html api** pages on :<br/>
 http://localhost:8080/project.name/project.version/swagger-ui.html
 <br/>OR json format under <br/>
 http://localhost:8080/project.name/project.version/v2/api-docs

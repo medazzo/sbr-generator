@@ -42,7 +42,7 @@ spring:
   datasource:
     url: jdbc:h2:/tmp/{{project.name}}/sbr-gen-database.h2;DB_CLOSE_ON_EXIT=FALSE
     username: easin
-    password: 
+    password:
     driverClassName: org.h2.Driver
   jpa:
     generate-ddl: true
@@ -73,7 +73,7 @@ spring:
   datasource:
     url: jdbc:h2:mem:test;DB_CLOSE_ON_EXIT=FALSE
     username: easin
-    password: 
+    password:
     driverClassName: org.h2.Driver
     jpa:
       generate-ddl: true
@@ -82,7 +82,7 @@ spring:
           default_schema: public
           dialect: org.hibernate.dialect.H2Dialect
       hibernate:
-        ddl-auto: create
+        ddl-auto: create-drop
       show-sql: true
     jackson:
       serialization:
@@ -113,7 +113,7 @@ spring:
           default_schema: public
           dialect: org.hibernate.dialect.PostgreSQL82Dialect
       hibernate:
-        ddl-auto: update
+        ddl-auto: none
       show-sql: true
     jackson:
       serialization:
@@ -1016,6 +1016,7 @@ public class {{entityName}}CrudUnitTest {
         {%- if security  %}
         auth = DoAdminAuthentication() ;
         {%- endif  %}
+        /* could be used : tend to generate tests fails ; depeneds on tests order run !!
         {%- for field in entity.fields %}{% if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's create one !
 {%- if security %}
@@ -1025,11 +1026,13 @@ public class {{entityName}}CrudUnitTest {
 {%- endif %}
         hm.put("{{field.foreignEntity}}",fk{{field.foreignEntity}});
         {%-endif %} {% endfor %}
+        */
     }
 
     @After
     public void tearDown() throws Exception {
         log.debug(" in  tearDown Test {{entityName}}  !.");
+        /* could be used : tend to generate tests fails ; depeneds on tests order run !!
         {%- for field in entity.fields %}{%- if field.foreignKey  %}
         //String Field referring foreignKey of type  {{field.foreignEntity}} , so let's remove it once done wuth test !
         {{field.foreignEntity}} dep{{field.foreignEntity}} = ({{field.foreignEntity}}) hm.get("{{field.foreignEntity}}");
@@ -1040,6 +1043,7 @@ public class {{entityName}}CrudUnitTest {
 {%- endif %}
         hm.remove("{{field.foreignEntity}}");
         {%-endif %} {% endfor %}
+        */
     }
     /**
      *
@@ -1513,17 +1517,17 @@ public class MyErrorController implements ErrorController {
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>            
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>            
+            <artifactId>httpclient</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
         <plugins>
-<!-- not really needed 
+<!-- not really needed
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -1563,7 +1567,7 @@ public class MyErrorController implements ErrorController {
                     <path>{{pom.restPath}}</path>
                 </configuration>
             </plugin>
-            <!-- Removed : take much time in starting and traces 
+            <!-- Removed : take much time in starting and traces
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
@@ -1599,7 +1603,6 @@ public class MyErrorController implements ErrorController {
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
                 <configuration>
                     <source>11</source>
                     <target>11</target>
