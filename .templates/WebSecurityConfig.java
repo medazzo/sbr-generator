@@ -46,6 +46,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors()
             .and()
+        	.headers().frameOptions().sameOrigin()
+            .and()
             .csrf().disable()
             .authorizeRequests().antMatchers(   "/swagger-ui.html*",                                                
                                                 "/webjars/springfox-swagger-ui/**",
@@ -53,7 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                                                 "/status/*",
                                                 "/api/auth/*",
                                                 "/h2-console/**",
-                                                "api/user/new").permitAll()
+                                                "/api/user/new").permitAll()
             .anyRequest().authenticated()
             .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
             .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
