@@ -15,7 +15,8 @@
         "testMinBuildAndDoTests": "npm run buildExampleMin && cd buildExampleMin && mvn test",
         "testFullBuildAndDoTests": "npm run buildExampleFull && cd buildExampleFull && mvn test",
         "test": "npm run buildTemplates && npm run testFullBuildNoTests && npm run testMinBuildNoTests && npm run testMinBuildAndDoTests && npm run testFullBuildAndDoTests",
-        "install": "pip install -r requirements.txt --user"
+        "install": "pip install -r requirements.txt --user",
+        "dev" : "npm run buildTemplates && npm run buildExampleFull"
     },
     "repository": {
         "type": "git",
