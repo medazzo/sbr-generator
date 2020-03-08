@@ -177,6 +177,7 @@ class Generator:
                                              Repositorypackage=self.__project.package + "." + Project.Repositories_folder + "." + ent.name + Project.Repository_prepend,
                                              Entitypackage=self.__project.package + "." + Project.Entities_folder + ".User",
                                              entity=ent,
+                                             packageConstants=self.__project.package + "." + Project.Conf_folder,
                                              Repopackage=self.__project.package + "." + Project.Repositories_folder+".User" + Project.Repository_prepend).encode("utf-8")
                     f = open(self.servicesDirs + '/' + Generator.UserService_Template, 'wb')
                     f.write(output)

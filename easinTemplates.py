@@ -314,10 +314,11 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @PostMapping("/new")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Create a new  {{entityName}} ", nickname = "CreateNew{{entityName}}" ,
- tags = { "{{entityName}}" })
- {%- if security  %}
+    @ApiOperation(value = "Create a new  {{entityName}} ", nickname = "CreateNew{{entityName}}", tags = { "{{entityName}}" })
+ {%- if security %}
+ {%- if 'User' != entityName %}
     @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
+ {%- endif  %}   
  {%- endif  %}
     public ResponseEntity<{{entityName}}> create(@RequestBody {{entityName}} n) {
         if (n == null) {
@@ -344,8 +345,7 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @GetMapping("/all/{id}")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Get all stored {{entityName}} using some extra ID( user/group ID or some other ID)",
-        nickname = "GetAll{{entityName}}BySomeID" , tags = { "{{entityName}}" })
+    @ApiOperation(value = "Get all stored {{entityName}} using some extra ID( user/group ID or some other ID)", nickname = "GetAll{{entityName}}BySomeID", tags = { "{{entityName}}" })
 {%- if security  %}
     @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
 {%- endif  %}
@@ -360,8 +360,7 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @GetMapping(path = "/{id}")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Get stored {{entityName}} using his unique ID", nickname = "GetOne{{entityName}}ById" ,
- tags = { "{{entityName}}" })
+    @ApiOperation(value = "Get stored {{entityName}} using his unique ID", nickname = "GetOne{{entityName}}ById", tags = { "{{entityName}}" })
  {%- if security  %}
      @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
  {%- endif  %}
@@ -376,8 +375,7 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @PutMapping(path = "/{id}")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Update the stored {{entityName}} using his unique ID",
-         nickname = "UpdateOne{{entityName}}ById" , tags = { "{{entityName}}" })
+    @ApiOperation(value = "Update the stored {{entityName}} using his unique ID", nickname = "UpdateOne{{entityName}}ById" , tags = { "{{entityName}}" })
 {%- if security  %}
     @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
 {%- endif  %}
@@ -398,8 +396,7 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
     @DeleteMapping("/{id}")
     @ResponseBody
     @Override
-    @ApiOperation(value = "Removing the stored {{entityName}} using his unique ID",
-        nickname = "RemoveOne{{entityName}}ById" , tags = { "{{entityName}}" })
+    @ApiOperation(value = "Removing the stored {{entityName}} using his unique ID", nickname = "RemoveOne{{entityName}}ById" , tags = { "{{entityName}}" })
 {%- if security  %}
     @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
 {%- endif  %}
@@ -528,7 +525,76 @@ public class {{entityName}}CrudUnitTest {
         log.debug(" Try to authenticate  non Existant User !.");
     }
     {%- endif  %}
+    
+{%- if security %}
+{%- if 'User' == entity.name%}
 
+    @Test
+    public void UserCreateAndAuthenticateTest() throws Exception {
+        log.debug(" in {{entityName}}  Create And Authenticate Test !.");
+        auth = DoAdminAuthentication() ;
+        // check Get all is empty
+        CheckAllEmpty();
+        // Create Test User Object
+         User user = Create();
+         log.debug(" Will CreateAndSave {{entityName}}  !." +user.toString());
+         log.warn( " !!!!!! the generated entity sent to server is ################### >" + asJsonString(user));
+         // Create {{entityName}} using API and verify returned One
+         MvcResult mvcResult = mockMvc.perform(
+                 post("{{mapping}}/new")                 
+                 .contentType(MediaType.APPLICATION_JSON)
+                 .content(asJsonString(user)))
+                 .andExpect(status().isCreated())
+                 .andDo(print())
+                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                 .andExpect(MockMvcResultMatchers.jsonPath("id").isNotEmpty())
+                 {%- for field in entity.fields %} {% if not field.foreignKey  %}
+                 .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(user.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                 {%-endif %} {% endfor %}
+                 .andReturn();
+         // Verify Created {{entityName}} using Service
+         User saved = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), User.class);
+         User found = service.getOne(saved.getId());
+         assertEquals(found.getId(), saved.getId());
+         {%- for field in entity.fields %} {% if not field.foreignKey  %}
+         assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), saved.get{{field.name[0]|upper}}{{field.name[1:]}}());
+         {%-endif %} {% endfor %}// return
+        // Get {{entityName}} using API and verify returned One
+        MvcResult mvcgResult = mockMvc.perform(
+                get("{{mapping}}/{id}", found.getId())
+                .header("Authorization", "Bearer "+auth.getToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
+                .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(found.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
+                .andReturn();
+        // Do Created {{entityName}} authentication
+        log.warn(" =====>  =====>  =====>  =====> Will start to Login created USER !!!!!!!!!");
+        String body = "{\\\"email\\\":\\\""+user.getEmail()+"\\\", \\\"password\\\":\\\""+user.getPassword()+"\\\"}";
+        log.debug(" Try to Created USer '"+user.getEmail()+"' with his password '"+user.getPassword()+"'.");
+        log.warn(" =====>  =====>  =====>  =====> Will start to Login created USER !!!!!!!!!");
+        MvcResult result = mockMvc.perform(
+                    post("/api/auth/token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .content(body))
+                .andExpect(status().isOk()).andReturn();
+        log.warn(" =====>  =====>  =====>  =====> Done try to Login created USER !!!!!!!!!");
+        log.warn(" =====>  =====>  =====>  =====> Done try to Login created USER !!!!!!!!!");
+        // Verify Getted {{entityName}} using Service
+        AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
+        log.debug(" >>> User '"+user.getEmail()+"' has been authenticated , his token is  '"+ authGetted.getToken() +"'.");
+        // Remove the Created {{entityName}}
+        RemoveOne( saved.getId(), mockMvc, auth);
+        // check Get all is empty
+        CheckAllEmpty();
+    }
+{%- endif  %}
+{%- endif  %}
     @Test
     public void {{entityName}}CreateTest() throws Exception {
         log.debug(" in {{entityName}}  CreateTest !.");
@@ -975,7 +1041,7 @@ public class {{entityName}}CrudUnitTest {
         old.setFirstName(HelperTests.randomString(10));
         old.setLastName(HelperTests.randomString(10));
         {%- if security  %}
-        old.setPassword(BCrypt.hashpw(HelperTests.randomString(7), Constants.SIGNING_KEY));
+        old.setPassword(HelperTests.randomString(7));
         {%- endif  %}
         old.setEmail(HelperTests.randomString(10)+"@blabla.com");
         old.setLangKey("EN");
@@ -1402,6 +1468,13 @@ public class MyErrorController implements ErrorController {
             <properties>
                 <springProfile>dev</springProfile>
             </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>                    
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
         </profile>
         <profile>
             <id>prod</id>
@@ -2150,7 +2223,7 @@ public class User extends BaseEntity {
     private String login;
 {%- if security %}
     @NotNull
-    @Size(min = 60, max = 128)
+    @Size(min = 7, max = 128)
     @Column(name = "password_hash", length = 60, nullable = false)
     private String password;
 {%- endif %}
@@ -2210,7 +2283,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.HashSet;
 import java.util.List;
@@ -2218,6 +2290,9 @@ import java.util.Set;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import {{packageConstants}}.Constants;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import {{Entitypackage}};
 import {{Repositorypackage}};
@@ -2230,9 +2305,6 @@ public class UserService  implements  UserDetailsService, IService<User> {
 
     @Autowired
     private UserRepository erepo;
-
-    @Autowired
-     private BCryptPasswordEncoder bcryptEncoder;
 
      public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
      log.debug(" >>>>>>>>>>>>>> looking for user with email  " + email);
@@ -2270,6 +2342,8 @@ public class UserService  implements  UserDetailsService, IService<User> {
     @Override
     public User create(User n) {
         log.info("Saving new  User .. " + n.toString());
+        //Encrypt password , since first time it must bne clear, to be encrypted in DB then.
+        n.setPassword(BCrypt.hashpw(n.getPassword(), Constants.SIGNING_KEY));
         return erepo.save(n);
     }
 
@@ -2388,6 +2462,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors()
             .and()
+        	.headers().frameOptions().sameOrigin()
+            .and()
             .csrf().disable()
             .authorizeRequests().antMatchers(   "/swagger-ui.html*",                                                
                                                 "/webjars/springfox-swagger-ui/**",
@@ -2395,7 +2471,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                                                 "/status/*",
                                                 "/api/auth/*",
                                                 "/h2-console/**",
-                                                "api/user/new").permitAll()
+                                                "/api/user/new").permitAll()
             .anyRequest().authenticated()
             .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
             .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
