@@ -3,7 +3,8 @@ package {{package}};
 import {{Entitypackage}};
 import {{Servicepackage}};
 {%- if security %}
-import {{packageAuth}}.AuthToken ;
+import {{packageSecurity}}.api.AuthToken ;
+import {{packageSecurity}}.AuthoritiesConstants ;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 {%-endif %}
 {%- for field in entity.fields %}{%- if field.foreignKey  %}
@@ -115,7 +116,76 @@ public class {{entityName}}CrudUnitTest {
         log.debug(" Try to authenticate  non Existant User !.");
     }
     {%- endif  %}
+    
+{%- if security %}
+{%- if 'User' == entity.name%}
 
+    @Test
+    public void UserCreateAndAuthenticateTest() throws Exception {
+        log.debug(" in {{entityName}}  Create And Authenticate Test !.");
+        auth = DoAdminAuthentication() ;
+        // check Get all is empty
+        CheckAllEmpty();
+        // Create Test User Object
+         User user = Create();
+         log.debug(" Will CreateAndSave {{entityName}}  !." +user.toString());
+         log.warn( " !!!!!! the generated entity sent to server is ################### >" + asJsonString(user));
+         // Create {{entityName}} using API and verify returned One
+         MvcResult mvcResult = mockMvc.perform(
+                 post("{{mapping}}/new")                 
+                 .contentType(MediaType.APPLICATION_JSON)
+                 .content(asJsonString(user)))
+                 .andExpect(status().isCreated())
+                 .andDo(print())
+                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                 .andExpect(MockMvcResultMatchers.jsonPath("id").isNotEmpty())
+                 {%- for field in entity.fields %} {% if not field.foreignKey  %}
+                 .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(user.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                 {%-endif %} {% endfor %}
+                 .andReturn();
+         // Verify Created {{entityName}} using Service
+         User saved = mapper.readValue(mvcResult.getResponse().getContentAsByteArray(), User.class);
+         User found = service.getOne(saved.getId());
+         assertEquals(found.getId(), saved.getId());
+         {%- for field in entity.fields %} {% if not field.foreignKey  %}
+         assertEquals(found.get{{field.name[0]|upper}}{{field.name[1:]}}(), saved.get{{field.name[0]|upper}}{{field.name[1:]}}());
+         {%-endif %} {% endfor %}// return
+        // Get {{entityName}} using API and verify returned One
+        MvcResult mvcgResult = mockMvc.perform(
+                get("{{mapping}}/{id}", found.getId())
+                .header("Authorization", "Bearer "+auth.getToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                {%- for field in entity.fields %} {% if not field.foreignKey  %}
+                .andExpect(MockMvcResultMatchers.jsonPath("{{field.name}}").value(found.get{{field.name[0]|upper}}{{field.name[1:]}}()))
+                {%-endif %} {% endfor %}
+                .andReturn();
+        // Do Created {{entityName}} authentication
+        log.warn(" =====>  =====>  =====>  =====> Will start to Login created USER !!!!!!!!!");
+        String body = "{\\\"email\\\":\\\""+user.getEmail()+"\\\", \\\"password\\\":\\\""+user.getPassword()+"\\\"}";
+        log.debug(" Try to Created USer '"+user.getEmail()+"' with his password '"+user.getPassword()+"'.");
+        log.warn(" =====>  =====>  =====>  =====> Will start to Login created USER !!!!!!!!!");
+        MvcResult result = mockMvc.perform(
+                    post("/api/auth/token")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .content(body))
+                .andExpect(status().isOk()).andReturn();
+        log.warn(" =====>  =====>  =====>  =====> Done try to Login created USER !!!!!!!!!");
+        log.warn(" =====>  =====>  =====>  =====> Done try to Login created USER !!!!!!!!!");
+        // Verify Getted {{entityName}} using Service
+        AuthToken authGetted = mapper.readValue(result.getResponse().getContentAsByteArray(),AuthToken.class);
+        log.debug(" >>> User '"+user.getEmail()+"' has been authenticated , his token is  '"+ authGetted.getToken() +"'.");
+        // Remove the Created {{entityName}}
+        RemoveOne( saved.getId(), mockMvc, auth);
+        // check Get all is empty
+        CheckAllEmpty();
+    }
+{%- endif  %}
+{%- endif  %}
     @Test
     public void {{entityName}}CreateTest() throws Exception {
         log.debug(" in {{entityName}}  CreateTest !.");
@@ -562,7 +632,8 @@ public class {{entityName}}CrudUnitTest {
         old.setFirstName(HelperTests.randomString(10));
         old.setLastName(HelperTests.randomString(10));
         {%- if security  %}
-        old.setPassword(BCrypt.hashpw(HelperTests.randomString(7), Constants.SIGNING_KEY));
+        old.setPassword(HelperTests.randomString(7));
+        old.setMainRole(AuthoritiesConstants.ADMIN);
         {%- endif  %}
         old.setEmail(HelperTests.randomString(10)+"@blabla.com");
         old.setLangKey("EN");

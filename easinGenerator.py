@@ -345,7 +345,7 @@ class Generator:
             template = Environment(loader=BaseLoader()).from_string(templates[Generator.CrudTest_Template])
             if self.security:
                 output = template.render(package=self.__project.package,
-                                         packageAuth=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder,
+                                         packageSecurity=self.__project.package + "." + Project.Security_folder ,
                                          security=self.security,
                                          aemail=self.amail,
                                          uemail=self.umail,
@@ -361,7 +361,7 @@ class Generator:
                                          entity=ent).encode("utf-8")
             else:
                 output = template.render(package=self.__project.package,
-                                         packageAuth=self.__project.package + "." + Project.Security_folder + "." + Project.Security_api_folder,
+                                         packageSecurity=self.__project.package + "." + Project.Security_folder ,
                                          security=self.security,
                                          aemail=self.amail,
                                          uemail=self.umail,

@@ -413,7 +413,8 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
 import {{Entitypackage}};
 import {{Servicepackage}};
 {%- if security %}
-import {{packageAuth}}.AuthToken ;
+import {{packageSecurity}}.api.AuthToken ;
+import {{packageSecurity}}.AuthoritiesConstants ;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 {%-endif %}
 {%- for field in entity.fields %}{%- if field.foreignKey  %}
@@ -1042,6 +1043,7 @@ public class {{entityName}}CrudUnitTest {
         old.setLastName(HelperTests.randomString(10));
         {%- if security  %}
         old.setPassword(HelperTests.randomString(7));
+        old.setMainRole(AuthoritiesConstants.ADMIN);
         {%- endif  %}
         old.setEmail(HelperTests.randomString(10)+"@blabla.com");
         old.setLangKey("EN");
@@ -2264,8 +2266,11 @@ public class User extends BaseEntity {
 
     @Column(name = "reset_date")
     private Instant resetDate = null;
-
+    {%- if security %}
+    @NotNull
+    {%- else %}
     @JsonIgnore
+    {%- endif %}
     private String mainRole;
 
     /**
