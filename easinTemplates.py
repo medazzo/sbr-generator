@@ -1038,7 +1038,6 @@ public class {{entityName}}CrudUnitTest {
     public static  {{entityName}} Update({{entityName}} old) throws Exception  {
         {%- if 'User' == entity.name %}
         // Add extra for User
-        old.setLogin(HelperTests.randomString(10));
         old.setFirstName(HelperTests.randomString(10));
         old.setLastName(HelperTests.randomString(10));
         {%- if security  %}
@@ -1125,11 +1124,11 @@ public class {{entityName}}CrudUnitTest {
         }
     }
 } """,
-    'data.sql' :  """/* Generated Admin user with mail='{{mail}}' and password='{{passwordclear}}' and login='{{login}}'*/ 
-INSERT INTO USER ( ACTIVATED , ACTIVATION_KEY , CREATED_AT , EMAIL , FIRST_NAME , ID , IMAGE_URL , LANG_KEY , LAST_NAME , LOGIN , MAIN_ROLE , NAME , PASSWORD_HASH , PHONE , RESET_DATE , RESET_KEY , UPDATED_AT , VERSION ) VALUES (TRUE, 'ACT-KEY-NOT-NEEDED', NOW(), '{{mail}}', ' Me Admin','{{uuid}}','IMAGE_URL-NOT-NEEDED', 'EN', 'Very strong', '{{login}}','ROLE_ADMIN','Me Strong Admin', '{{password}}', '0022554411887',NOW() , 'RESET_KEY-NOT-NEEDED' , NOW() , 0);
+    'data.sql' :  """/* Generated Admin user with mail='{{mail}}' and password='{{passwordclear}}' */ 
+INSERT INTO USER ( ACTIVATED , ACTIVATION_KEY , CREATED_AT , EMAIL , FIRST_NAME , ID , IMAGE_URL , LANG_KEY , LAST_NAME , MAIN_ROLE , NAME , PASSWORD_HASH , PHONE , RESET_DATE , RESET_KEY , UPDATED_AT , VERSION ) VALUES (TRUE, 'ACT-KEY-NOT-NEEDED', NOW(), '{{mail}}', ' Me Admin','{{uuid}}','IMAGE_URL-NOT-NEEDED', 'EN', 'Very strong', 'ROLE_ADMIN','Me Strong Admin', '{{password}}', '0022554411887',NOW() , 'RESET_KEY-NOT-NEEDED' , NOW() , 0);
 
-/* Generated USER with mail='{{umail}}' and password='{{upasswordclear}}' and login='{{ulogin}}'*/ 
-INSERT INTO USER ( ACTIVATED , ACTIVATION_KEY , CREATED_AT , EMAIL , FIRST_NAME , ID , IMAGE_URL , LANG_KEY , LAST_NAME , LOGIN , MAIN_ROLE , NAME , PASSWORD_HASH , PHONE , RESET_DATE , RESET_KEY , UPDATED_AT , VERSION ) VALUES (TRUE, 'ACT-KEY-NOT-NEEDED', NOW(), '{{umail}}', ' Me User','{{uuuid}}','IMAGE_URL-NOT-NEEDED', 'EN', 'Very Helpful', '{{ulogin}}','ROLE_USER','Me Useful User', '{{upassword}}', '0022554411887',NOW() , 'RESET_KEY-NOT-NEEDED' , NOW() , 0); """,
+/* Generated USER with mail='{{umail}}' and password='{{upasswordclear}}' */ 
+INSERT INTO USER ( ACTIVATED , ACTIVATION_KEY , CREATED_AT , EMAIL , FIRST_NAME , ID , IMAGE_URL , LANG_KEY , LAST_NAME , MAIN_ROLE , NAME , PASSWORD_HASH , PHONE , RESET_DATE , RESET_KEY , UPDATED_AT , VERSION ) VALUES (TRUE, 'ACT-KEY-NOT-NEEDED', NOW(), '{{umail}}', ' Me User','{{uuuid}}','IMAGE_URL-NOT-NEEDED', 'EN', 'Very Helpful', 'ROLE_USER','Me Useful User', '{{upassword}}', '0022554411887',NOW() , 'RESET_KEY-NOT-NEEDED' , NOW() , 0); """,
     'entity.java' :  """package {{package}} ;
 
 import javax.persistence.*;
@@ -2218,11 +2217,6 @@ public class User extends BaseEntity {
 {% endif %}
 {% endfor %}
 
-    @NotNull
-    @Pattern(regexp = Constants.LOGIN_REGEX)
-    @Size(min = 1, max = 50)
-    @Column(length = 50, unique = true, nullable = false)
-    private String login;
 {%- if security %}
     @NotNull
     @Size(min = 7, max = 128)

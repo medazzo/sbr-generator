@@ -85,7 +85,7 @@ class TestCrudUser(unittest.TestCase):
         self.userPassword1 = "MonPassword1"    
         myName=rndString(10)
         query = self.tester.Create(
-            '{"version":1,"name":"'+myName+'","phone":"'+rndString(10)+'","mainRole":"ROLE_ADMIN","login":"'+rndString(10)+'","password":"'+self.userPassword1+'","firstName":"'+rndString(10)+'","lastName":"'+rndString(10)+'","email":"'+self.userEmail1+'","activated":true,"langKey":"EN","imageUrl":"L0evg9vxAQ","resetDate":null,"id":null}')
+            '{"version":1,"name":"'+myName+'","phone":"'+rndString(10)+'","mainRole":"ROLE_ADMIN","password":"'+self.userPassword1+'","firstName":"'+rndString(10)+'","lastName":"'+rndString(10)+'","email":"'+self.userEmail1+'","activated":true,"langKey":"EN","imageUrl":"L0evg9vxAQ","resetDate":null,"id":null}')
         self.user = query.json()
         self.us_id = self.user['id']
         self.assertNotEqual(self.user['id'], 'null')

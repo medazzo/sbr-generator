@@ -628,7 +628,6 @@ public class {{entityName}}CrudUnitTest {
     public static  {{entityName}} Update({{entityName}} old) throws Exception  {
         {%- if 'User' == entity.name %}
         // Add extra for User
-        old.setLogin(HelperTests.randomString(10));
         old.setFirstName(HelperTests.randomString(10));
         old.setLastName(HelperTests.randomString(10));
         {%- if security  %}
