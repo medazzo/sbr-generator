@@ -7,7 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiModel;
 import org.hibernate.annotations.GenericGenerator;
-
+import java.util.Date;
+{%- for field in entity.fields | sort(attribute='name') %}    
+{%- if field.foreignKey   %}
+import {{package}}.{{field.foreignEntity}};
+{%- endif %}
+{% endfor %}
 /**
  * {{entity.comment}}
  */

@@ -414,6 +414,7 @@ import {{Entitypackage}};
 import {{Servicepackage}};
 {%- if security %}
 import {{packageSecurity}}.api.AuthToken ;
+import java.util.Date;
 import {{packageSecurity}}.AuthoritiesConstants ;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 {%-endif %}
@@ -1138,7 +1139,12 @@ import lombok.extern.slf4j.Slf4j;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiModel;
 import org.hibernate.annotations.GenericGenerator;
-
+import java.util.Date;
+{%- for field in entity.fields | sort(attribute='name') %}    
+{%- if field.foreignKey   %}
+import {{package}}.{{field.foreignEntity}};
+{%- endif %}
+{% endfor %}
 /**
  * {{entity.comment}}
  */

@@ -4,6 +4,7 @@ import {{Entitypackage}};
 import {{Servicepackage}};
 {%- if security %}
 import {{packageSecurity}}.api.AuthToken ;
+import java.util.Date;
 import {{packageSecurity}}.AuthoritiesConstants ;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 {%-endif %}
