@@ -1,8 +1,8 @@
-
 # SBR-Generator
 
 [![Build Status](https://travis-ci.org/medazzo/sbr-generator.svg?branch=master)](https://travis-ci.org/medazzo/sbr-generator)
 [![npm version](https://badge.fury.io/js/sbr-generator.svg)](https://badge.fury.io/js/sbr-generator)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmedazzo%2Fsbr-generator.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmedazzo%2Fsbr-generator?ref=badge_shield)
 
 SBR generator is a Spring Boot Rest Generator npm binary cli used to generate source code modules starting from config file.<br/>
 
@@ -190,3 +190,7 @@ entities:
 http://localhost:8080/project.name/project.version/swagger-ui.html
 <br/>OR json format under <br/>
 http://localhost:8080/project.name/project.version/v2/api-docs
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fmedazzo%2Fsbr-generator.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fmedazzo%2Fsbr-generator?ref=badge_large)
