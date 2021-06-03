@@ -6,5 +6,5 @@ install:
 virtualenv:
   system_site_packages: true
 script:
-    - npm run build
+    - npm run dev
     - npm run test
