@@ -5,18 +5,21 @@
     "main": "index.js",
     "scripts": {
         "buildTemplates": "./generateTemplateFile.sh",
-        "buildExampleFullNoTests": "python easinGenerator.py  -c examples/config.yaml -v -o buildExampleFullNoTests",
-        "buildExampleMinNoTests": "python easinGenerator.py  -c examples/config.yaml -s -v -o buildExampleMinNoTests",
-        "BuildNoTests": "cd serverTest* && mvn package install -Dmaven.test.skip=true ",
-        "buildExampleMin": "python easinGenerator.py  -c examples/config.yaml -t -s -v -o buildExampleMin",
-        "buildExampleFull": "python easinGenerator.py  -c examples/config.yaml -t -v -o buildExampleFull",
-        "testFullBuildNoTests": "npm run buildExampleFullNoTests && cd buildExampleFullNoTests && mvn package install -Dmaven.test.skip=true",
-        "testMinBuildNoTests": "npm run buildExampleMinNoTests && cd buildExampleMinNoTests && mvn package install -Dmaven.test.skip=true",
-        "testMinBuildAndDoTests": "npm run buildExampleMin && cd buildExampleMin && mvn test",
-        "testFullBuildAndDoTests": "npm run buildExampleFull && cd buildExampleFull && mvn test",
-        "test": "npm run buildTemplates && npm run testFullBuildNoTests && npm run testMinBuildNoTests && npm run testMinBuildAndDoTests && npm run testFullBuildAndDoTests",
+
+        "buildExampleFullNoTests": "python3 easinGenerator.py  -c examples/config.yaml -v -o buildExampleFullNoTests",
+        "buildExampleMinNoTests": "python3 easinGenerator.py  -c examples/config.yaml -s -v -o buildExampleMinNoTests",
+        "buildExampleMin": "python3 easinGenerator.py  -c examples/config.yaml -t -s -v -o buildExampleMin",
+        "buildExampleFull": "python3 easinGenerator.py  -c examples/config.yaml -t -v -o buildExampleFull",
+        
+
+        "buildtest-FullBuildNoTests": "npm run buildExampleFullNoTests && cd buildExampleFullNoTests && mvn -X clean package install -Dmaven.test.skip=true",
+        "buildtest-MinBuildNoTests": "npm run buildExampleMinNoTests && cd buildExampleMinNoTests && mvn  -X clean package install -Dmaven.test.skip=true",
+        "buildtest-MinBuildAndDoTests": "npm run buildExampleMin && cd buildExampleMin && mvn -X clean test",
+        "buildtest-FullBuildAndDoTests": "npm run buildExampleFull && cd buildExampleFull && mvn -X clean test",
+
+        "test":" concurrently -n w: npm:buildtest-* ",
         "install": "pip install -r requirements.txt --user",
-        "dev" : "npm run buildTemplates && npm run buildExampleFull"
+        "dev": "npm run buildTemplates && npm run buildExampleFull"
     },
     "repository": {
         "type": "git",
@@ -48,5 +51,8 @@
     "homepage": "https://github.com/medazzo/sbr-generator#readme",
     "bin": {
         "sbrgen": "./cli.js"
+    },
+    "devDependencies": {
+        "concurrently": "^6.2.0"
     }
 }
