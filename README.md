@@ -1,7 +1,7 @@
 
 # SBR-Generator
 
-[![Build Status](https://travis-ci.org/medazzo/sbr-generator.svg?branch=master)](https://travis-ci.org/medazzo/sbr-generator)
+[![Build Status](https://travis-ci.com/medazzo/sbr-generator.svg?branch=master)](https://travis-ci.org/medazzo/sbr-generator)
 [![npm version](https://badge.fury.io/js/sbr-generator.svg)](https://badge.fury.io/js/sbr-generator)
 
 SBR generator is a Spring Boot Rest Generator npm binary cli used to generate source code modules starting from config file.<br/>
