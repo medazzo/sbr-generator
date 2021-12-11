@@ -1,6 +1,6 @@
-# ----------------------------------------------- 
-# Generated Files  Containing temples as variables 
-# ----------------------------------------------- 
+# ---------------------------------------------------- 
+# Generated Files  Containing templates as variables 
+# --------------------------------------------------- 
 
 templates = { 
     'Application.java' :  """package {{package}};
