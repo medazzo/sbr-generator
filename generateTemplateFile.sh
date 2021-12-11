@@ -3,9 +3,9 @@
 
 generatedFile="easinTemplates.py"
 WorkDirTemplates=".templates"
-echo "# ----------------------------------------------- "  > $generatedFile
-echo "# Generated Files  Containing temples as variables " >> $generatedFile
-echo "# ----------------------------------------------- "  >> $generatedFile
+echo "# ---------------------------------------------------- "  > $generatedFile
+echo "# Generated Files  Containing templates as variables " >> $generatedFile
+echo "# --------------------------------------------------- "  >> $generatedFile
 echo "" >> $generatedFile
 echo "templates = { ">> $generatedFile
 for i in `ls $WorkDirTemplates`
