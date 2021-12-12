@@ -1,9 +1,9 @@
-# ---------------------------------------------------- 
-# Generated Files  Containing templates as variables 
-# --------------------------------------------------- 
+# ----------------------------------------------------
+# Generated Files  Containing templates as variables
+# ---------------------------------------------------
 
-templates = { 
-    'Application.java' :  """package {{package}};
+templates = {
+    "Application.java": """package {{package}};
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,7 +22,7 @@ public class Application {
     }
 
 } """,
-    'application.yaml' :  """spring:
+    "application.yaml": """spring:
   profiles:
     active: "dev"
   thymeleaf:
@@ -118,7 +118,7 @@ spring:
     jackson:
       serialization:
         FAIL_ON_EMPTY_BEANS: False """,
-    'AuthenticationController.java' :  """package {{package}};
+    "AuthenticationController.java": """package {{package}};
 
 import {{Securitypackage}}.TokenProvider;
 import {{EntitypackageUser}};
@@ -164,7 +164,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(new AuthToken(token, user));
     }
 } """,
-    'AuthoritiesConstants.java' :  """package {{package}};
+    "AuthoritiesConstants.java": """package {{package}};
 
 /**
  * Constants for Spring Security authorities.
@@ -178,8 +178,9 @@ public final class AuthoritiesConstants {
     public static final String {{role}} = "ROLE_{{role}}";
 {% endfor %}
 
-} """,
-    'AuthToken.java' :  """package {{package}};
+}
+ """,
+    "AuthToken.java": """package {{package}};
 
 import {{EntitypackageUser}};
 import lombok.AllArgsConstructor;
@@ -199,7 +200,7 @@ public class AuthToken {
     private User user;
 
 } """,
-    'BaseEntity.java' :  """package {{package}};
+    "BaseEntity.java": """package {{package}};
 
 import java.io.Serializable;
 import java.util.Date;
@@ -250,7 +251,7 @@ public abstract class BaseEntity implements Serializable {
     	this.updatedAt = new Date();
     }
 } """,
-    'CommandInitializer.java' :  """package {{package}};
+    "CommandInitializer.java": """package {{package}};
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -265,7 +266,7 @@ class CommandInitializer implements CommandLineRunner {
         log.warn("Preparing some stuff to do before run applications .. ");
     }
 } """,
-    'Constants.java' :  """package {{package}};
+    "Constants.java": """package {{package}};
 
 public class Constants {
 
@@ -284,7 +285,7 @@ public class Constants {
     }
 
 } """,
-    'controller.java' :  """package {{package}};
+    "controller.java": """package {{package}};
 
 import {{Entitypackage}};
 import {{projectPackage}}.exceptions.ResourceBadParameterException;
@@ -318,7 +319,7 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
  {%- if security %}
  {%- if 'User' != entityName %}
     @PreAuthorize("hasAnyRole('ADMIN', 'USER'{%- for role in roles  %}, '{{role}}'{%- endfor %})")
- {%- endif  %}   
+ {%- endif  %}
  {%- endif  %}
     public ResponseEntity<{{entityName}}> create(@RequestBody {{entityName}} n) {
         if (n == null) {
@@ -408,7 +409,7 @@ public class {{entityName}}Controller   implements IController<{{entityName}}> {
         service.deleteone(id);
     }
 } """,
-    'CrudUnitTest.java' :  """package {{package}};
+    "CrudUnitTest.java": """package {{package}};
 
 import {{Entitypackage}};
 import {{Servicepackage}};
@@ -516,7 +517,7 @@ public class {{entityName}}CrudUnitTest {
 
     @Test
     public void nonexistentUserCannotGetToken() throws Exception {
-        String body = "{\\\"username\\\":\\\"nonexistentuser\\\", \\\"password\\\":\\\password \\\"}";
+        String body = "{\\\"username\\\":\\\"nonexistentuser\\\", \\\"password\\\":\\\\password \\\"}";
         mockMvc.perform(
                     post("/v2/token")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -527,7 +528,7 @@ public class {{entityName}}CrudUnitTest {
         log.debug(" Try to authenticate  non Existant User !.");
     }
     {%- endif  %}
-    
+
 {%- if security %}
 {%- if 'User' == entity.name%}
 
@@ -543,7 +544,7 @@ public class {{entityName}}CrudUnitTest {
          log.warn( " !!!!!! the generated entity sent to server is ################### >" + asJsonString(user));
          // Create {{entityName}} using API and verify returned One
          MvcResult mvcResult = mockMvc.perform(
-                 post("{{mapping}}/new")                 
+                 post("{{mapping}}/new")
                  .contentType(MediaType.APPLICATION_JSON)
                  .content(asJsonString(user)))
                  .andExpect(status().isCreated())
@@ -1125,12 +1126,12 @@ public class {{entityName}}CrudUnitTest {
         }
     }
 } """,
-    'data.sql' :  """/* Generated Admin user with mail='{{mail}}' and password='{{passwordclear}}' */ 
+    "data.sql": """/* Generated Admin user with mail='{{mail}}' and password='{{passwordclear}}' */
 INSERT INTO USER ( ACTIVATED , ACTIVATION_KEY , CREATED_AT , EMAIL , FIRST_NAME , ID , IMAGE_URL , LANG_KEY , LAST_NAME , MAIN_ROLE , NAME , PASSWORD_HASH , PHONE , RESET_DATE , RESET_KEY , UPDATED_AT , VERSION ) VALUES (TRUE, 'ACT-KEY-NOT-NEEDED', NOW(), '{{mail}}', ' Me Admin','{{uuid}}','IMAGE_URL-NOT-NEEDED', 'EN', 'Very strong', 'ROLE_ADMIN','Me Strong Admin', '{{password}}', '0022554411887',NOW() , 'RESET_KEY-NOT-NEEDED' , NOW() , 0);
 
-/* Generated USER with mail='{{umail}}' and password='{{upasswordclear}}' */ 
+/* Generated USER with mail='{{umail}}' and password='{{upasswordclear}}' */
 INSERT INTO USER ( ACTIVATED , ACTIVATION_KEY , CREATED_AT , EMAIL , FIRST_NAME , ID , IMAGE_URL , LANG_KEY , LAST_NAME , MAIN_ROLE , NAME , PASSWORD_HASH , PHONE , RESET_DATE , RESET_KEY , UPDATED_AT , VERSION ) VALUES (TRUE, 'ACT-KEY-NOT-NEEDED', NOW(), '{{umail}}', ' Me User','{{uuuid}}','IMAGE_URL-NOT-NEEDED', 'EN', 'Very Helpful', 'ROLE_USER','Me Useful User', '{{upassword}}', '0022554411887',NOW() , 'RESET_KEY-NOT-NEEDED' , NOW() , 0); """,
-    'entity.java' :  """package {{package}} ;
+    "entity.java": """package {{package}} ;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -1140,7 +1141,7 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiModel;
 import org.hibernate.annotations.GenericGenerator;
 import java.util.Date;
-{%- for field in entity.fields | sort(attribute='name') %}    
+{%- for field in entity.fields | sort(attribute='name') %}
 {%- if field.foreignKey   %}
 import {{package}}.{{field.foreignEntity}};
 {%- endif %}
@@ -1156,7 +1157,7 @@ import {{package}}.{{field.foreignEntity}};
 @ToString
 @Entity
 public class {{entity.name}} extends BaseEntity {
-    
+
     @Id
     @GeneratedValue(generator = "system-uuid", strategy = GenerationType.IDENTITY)
     @GenericGenerator(name = "system-uuid", strategy = "uuid2")
@@ -1175,16 +1176,16 @@ public class {{entity.name}} extends BaseEntity {
     * default constructor
     */
     public {{entity.name}}() {
-        super();        
-    }    
+        super();
+    }
 } """,
-    'HelperTests.java' :  """package {{package}} ;
- 
+    "HelperTests.java": """package {{package}} ;
+
 
 import java.security.SecureRandom;
 
 public class HelperTests {
-    
+
     private static final String CHAR_LOWER = "abcdefghijklmnopqrstuvwxyz";
     private static final String CHAR_UPPER = CHAR_LOWER.toUpperCase();
     private static final String NUMBER = "0123456789";
@@ -1192,13 +1193,13 @@ public class HelperTests {
     private static SecureRandom random = new SecureRandom();
 
     public static int randomInteger(int bound) {
-        return  random.nextInt(bound);        
+        return  random.nextInt(bound);
     }
-    
-    public static double randomdouble() {        
-        return  Math.random();        
+
+    public static double randomdouble() {
+        return  Math.random();
     }
-        
+
     public static String randomString(int length) {
         if (length < 1) throw new IllegalArgumentException();
 
@@ -1218,9 +1219,9 @@ public class HelperTests {
         return randomString(10)+"@"+randomString(7)+".com";
 
     }
- 
+
 } """,
-    'IController.java' :  """package {{package}};
+    "IController.java": """package {{package}};
 
 import java.util.List;
 
@@ -1241,7 +1242,7 @@ public interface IController<T> {
     public void delete(String id);
 
 } """,
-    'IService.java' :  """package {{package}};
+    "IService.java": """package {{package}};
 
 import java.util.List;
 
@@ -1259,7 +1260,7 @@ public interface IService<T> {
 
     public void deleteone(String id);
 } """,
-    'JwtAuthenticationEntryPoint.java' :  """package {{package}};
+    "JwtAuthenticationEntryPoint.java": """package {{package}};
 
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -1286,7 +1287,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Se
             response.getOutputStream().println(error);
     }
 } """,
-    'JwtAuthenticationFilter.java' :  """package {{package}};
+    "JwtAuthenticationFilter.java": """package {{package}};
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;
@@ -1354,7 +1355,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         chain.doFilter(req, res);
     }
 } """,
-    'log4j2.xml' :  """{% raw %}<?xml version="1.0" encoding="UTF-8"?>
+    "log4j2.xml": """{% raw %}<?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Properties>
         <Property name="LOG_PATTERN">
@@ -1377,7 +1378,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 <pattern>%d %p %C{1.} [%t] %m%n</pattern>
             </PatternLayout>
             <Policies>
-                <!-- rollover on startup, daily and when the file reaches 
+                <!-- rollover on startup, daily and when the file reaches
                     10 MegaBytes -->
                 <OnStartupTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy
@@ -1398,7 +1399,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     </Loggers>
 
 </Configuration> """,
-    'LoginUser.java' :  """package {{package}};
+    "LoginUser.java": """package {{package}};
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -1416,7 +1417,7 @@ public class LoginUser {
     private String email;
     private String password;
 } """,
-    'MyErrorController.java' :  """package {{package}};
+    "MyErrorController.java": """package {{package}};
 
 import org.springframework.stereotype.Controller;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -1443,7 +1444,7 @@ public class MyErrorController implements ErrorController {
       return "/error";
   }
 } """,
-    'pom.xml' :  """<?xml version="1.0" encoding="UTF-8"?>
+    "pom.xml": """<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -1478,7 +1479,7 @@ public class MyErrorController implements ErrorController {
             <dependencies>
                 <dependency>
                     <groupId>com.h2database</groupId>
-                    <artifactId>h2</artifactId>                    
+                    <artifactId>h2</artifactId>
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>
@@ -1721,7 +1722,7 @@ public class MyErrorController implements ErrorController {
         </pluginRepository>
     </pluginRepositories>
 </project> """,
-    'README.md' :  """
+    "README.md": """
 # {{project.name}} - {{project.version}}
 
 **{{project.longname}}**
@@ -1734,7 +1735,7 @@ Deployed at          :**{{project.restPath}} / {{project.version}}** <br/>
 
 ## Pre-Install
 
-### What needed for installation 
+### What needed for installation
 * Maven
 * Java 11
 * postgreSQL
@@ -1764,7 +1765,7 @@ More info in setting [users](https://www.digitalocean.com/community/tutorials/ho
 Postgres Database and user configuration
 ```
 user@user-VirtualBox:~/Documents/ebill$ psql -h localhost -U postgres -d postgres
-Password for user postgres: 
+Password for user postgres:
 psql (10.6 (Ubuntu 10.6-0ubuntu0.18.04.1), server 11.2 (Debian 11.2-1.pgdg90+1))
 postgres=#
 postgres=# create database "essDB";
@@ -1793,7 +1794,7 @@ To Run already generated  CRUD  unt Tests
 mvn surefire:test
 ```
 
-## Swagger docs 
+## Swagger docs
 
 It Can be found under <br/>
  [http://localhost:8080{{project.restPath}}/{{project.version}}/swagger-ui.html](http://localhost:8080{{project.restPath}}/{{project.version}}/swagger-ui.html)
@@ -1807,7 +1808,7 @@ server:
   servlet:
     context-path: /serverTest/0.0.1-SNAP
 ``` """,
-    'Repository.java' :  """package {{package}};
+    "Repository.java": """package {{package}};
 
 import {{Entitypackage}};
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -1823,7 +1824,7 @@ public interface {{entityName}}Repository extends JpaRepository<{{entityName}}, 
 {%- endif  %}
 	public List<{{entityName}}> findByName(String name);
 } """,
-    'RequestLoggingFilterConfig.java' :  """package {{package}};
+    "RequestLoggingFilterConfig.java": """package {{package}};
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -1847,7 +1848,7 @@ public class RequestLoggingFilterConfig {
         return filter;
     }
 } """,
-    'ResourceBadParameterException.java' :  """package {{package}};
+    "ResourceBadParameterException.java": """package {{package}};
 
 import lombok.Getter;
 import lombok.Setter;
@@ -1874,7 +1875,7 @@ public class ResourceBadParameterException extends RuntimeException {
     }
 
 } """,
-    'ResourceNotFoundException.java' :  """package {{package}};
+    "ResourceNotFoundException.java": """package {{package}};
 
 import lombok.Getter;
 import lombok.Setter;
@@ -1888,7 +1889,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
 public class ResourceNotFoundException extends RuntimeException {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -1517971622745346451L;
 	private String resourceName;
@@ -1900,7 +1901,7 @@ public class ResourceNotFoundException extends RuntimeException {
 		this.fieldName = "";
 		this.fieldValue = "";
 	}
-	
+
 	public ResourceNotFoundException( String resourceName, String fieldName, Object fieldValue) {
 	    super(String.format("%s not found with %s : '%s'", resourceName, fieldName, fieldValue));
 	    this.resourceName = resourceName;
@@ -1909,7 +1910,7 @@ public class ResourceNotFoundException extends RuntimeException {
 	}
 
 } """,
-    'RestConfig.java' :  """package {{package}};
+    "RestConfig.java": """package {{package}};
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -1948,7 +1949,7 @@ public class RestConfig {
         return new CorsFilter(source);
     }
 } """,
-    'Service.java' :  """package {{package}};
+    "Service.java": """package {{package}};
 
 
 import {{projectPackage}}.exceptions.ResourceNotFoundException;
@@ -2023,7 +2024,7 @@ public class {{entityName}}Service  implements IService<{{entityName}}> {
         });
     }
 } """,
-    'StatusController.java' :  """package {{package}};
+    "StatusController.java": """package {{package}};
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -2044,11 +2045,11 @@ public class StatusController {
     	  Map<String, String> ll = new HashMap<String, String>();
 			ll.put("Server status ", " Working fine !!");
         //readGitProperties(ll);
-        return  ll;        
+        return  ll;
     }
-/* Removed because git plugin is taken too munch time on booting : 
+/* Removed because git plugin is taken too munch time on booting :
     private Map<String, String> readGitProperties(Map<String, String> ll) {
-        ClassLoader classLoader = getClass().getClassLoader();        
+        ClassLoader classLoader = getClass().getClassLoader();
         try {
             InputStream inputStream = classLoader.getResourceAsStream("git.properties");
             JsonNode node = new ObjectMapper().readTree(inputStream);
@@ -2074,7 +2075,7 @@ public class StatusController {
         return ll;
     }*/
 } """,
-    'SwaggerConfiguration.java' :  """package {{package}};
+    "SwaggerConfiguration.java": """package {{package}};
 
 import static springfox.documentation.builders.PathSelectors.ant;
 import org.springframework.context.annotation.Bean;
@@ -2088,15 +2089,15 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class SwaggerConfiguration {
     @Bean
-    public Docket api() { 
-        return new Docket(DocumentationType.SWAGGER_2)  
-          .select()                                  
+    public Docket api() {
+        return new Docket(DocumentationType.SWAGGER_2)
+          .select()
           .apis(RequestHandlerSelectors.basePackage("{{project.package}}"))
           .paths(ant("{{ApiPrefix}}**"))
-          .build();                                           
+          .build();
     }
 } """,
-    'TokenProvider.java' :  """package {{package}};
+    "TokenProvider.java": """package {{package}};
 
 import io.jsonwebtoken.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -2181,7 +2182,7 @@ public class TokenProvider implements Serializable {
     }
 
 } """,
-    'User.java' :  """package {{package}} ;
+    "User.java": """package {{package}} ;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
@@ -2280,7 +2281,7 @@ public class User extends BaseEntity {
         super();
     }
 } """,
-    'UserService.java' :  """package {{package}};
+    "UserService.java": """package {{package}};
 
 import {{projectPackage}}.exceptions.ResourceNotFoundException;
 
@@ -2402,7 +2403,7 @@ public class UserService  implements  UserDetailsService, IService<User> {
         });
     }
 } """,
-    'WebInitializer.java' :  """package {{package}};
+    "WebInitializer.java": """package {{package}};
 
 import {{Apppackage}};
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -2419,7 +2420,7 @@ public class WebInitializer extends SpringBootServletInitializer {
         return application.sources(Application.class);
     }
 } """,
-    'WebSecurityConfig.java' :  """package {{package}};
+    "WebSecurityConfig.java": """package {{package}};
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -2470,7 +2471,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         	.headers().frameOptions().sameOrigin()
             .and()
             .csrf().disable()
-            .authorizeRequests().antMatchers(   "/swagger-ui.html*",                                                
+            .authorizeRequests().antMatchers(   "/swagger-ui.html*",
                                                 "/webjars/springfox-swagger-ui/**",
                                                 "/v2/api-docs*",
                                                 "/status/*",
@@ -2480,7 +2481,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             .anyRequest().authenticated()
             .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
             .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-    
+
         http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
     }
 
@@ -2489,4 +2490,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-} """}
+} """,
+}

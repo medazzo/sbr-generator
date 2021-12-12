@@ -4,7 +4,7 @@ SBR-Generator
 SBR generator is a Spring Boot Rest Generator python package.
 It proposes a CLI that will generate a java maven source code project starting from the config file.
 
-The Generated source code is a CRUD Rest Spring Boot Server, ready to build and run.  
+The Generated source code is a CRUD Rest Spring Boot Server, ready to build and run.
 
 **SBR** is using python and jinja2 Template machine.
 
@@ -26,17 +26,18 @@ It's a python package, it can be installed by
 How To use
 ################
 To Generate a ready to use Spring boot Rest Server, *SBR* need a configuration file
-You can start by using the example one    
+You can start by using the example one
 
 .. code-block:: bash
 
-    ~$ sbrgen  -h
-    usage: SBR Generator [-h] [-v] [-t] [-s] -c CONFIGFILE [-o OUTPUTDIR]
+    $ sbr-gen -h
+    usage: SBR Generator [-h] [--version] [-v] [-t] [-s] -c CONFIGFILE [-o OUTPUTDIR]
 
     SBR generator: Generate Spring Boot Rest source code.
 
     optional arguments:
       -h, --help            show this help message and exit
+      --version             show program's version number and exit
       -v, --mode-verbose    Enable verbose traces
       -t, --enable-tests    Enable tests
       -s, --disable-security
@@ -80,13 +81,13 @@ This will generate the next folder structure :
         │   │               ├── Application.java
         │   │               ├── conf
         │   │               │   └── ....java
-        │   │               ├── controllers    
+        │   │               ├── controllers
         │   │               │   └── ....java
-        │   │               ├── entities    
+        │   │               ├── entities
         │   │               │   └── ...java
-        │   │               ├── exceptions    
+        │   │               ├── exceptions
         │   │               │   └── ...java
-        │   │               ├── repositories    
+        │   │               ├── repositories
         │   │               │   └── ....java
         │   │               ├── security
         │   │               │   ├── api
@@ -133,7 +134,7 @@ Configuration File
 The Configuration is a YAML file having 3 sections :
 
 * project
-* logging 
+* logging
 * entities.
 
 Project section
@@ -144,7 +145,7 @@ Contains all project-specific data used in the pom file and the Readme and in so
 .. code-block:: yaml
 
     project:
-        longname: Easy Soft IN Selling Server # the project long name used in the pom files and the Readme     
+        longname: Easy Soft IN Selling Server # the project long name used in the pom files and the Readme
         description: Easin Selling Server     # a description for the project
         url: http://easysoft-in.com           # the URL of the project
         name: serverTest                      # the short name
@@ -152,7 +153,7 @@ Contains all project-specific data used in the pom file and the Readme and in so
         package: com.easin.serverTest         # the package of the project
         version: 0.0.1-SNAP                   # the version of the project
         security:                             # security data if activated to generate
-          extraroles:                         # security extra roles (*SBR* already manage admin and user) please do not prefix roles with ROLE !      
+          extraroles:                         # security extra roles (*SBR* already manage admin and user) please do not prefix roles with ROLE !
             - "PROVIDER"
             - "CONSUMER"
 
@@ -217,7 +218,7 @@ This section is used to generate a java package for entities, services, controll
 
 
 
-Developing 
+Developing
 #################
 
 Set python Virtual env environment and start developing

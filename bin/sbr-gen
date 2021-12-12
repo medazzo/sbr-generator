@@ -1,4 +1,0 @@
-
-from sbr.easinGenerator import run
-
-run()
