@@ -1,3 +1,19 @@
+
+|forthebadge made-with-python|
+
+.. |forthebadge made-with-python| image:: http://ForTheBadge.com/images/badges/made-with-python.svg
+   :target: https://www.python.org/
+
+|Build badge|
+
+.. |Build badge| image:: https://github.com/medazzo/sbr-generator/actions/workflows/build.yml/badge.svg?branch=master
+   :target: https://github.com/medazzo/sbr-generator/actions/workflows/build.yml
+
+|Publish badge|
+
+.. |Publish badge| image:: https://github.com/medazzo/sbr-generator/actions/workflows/publish.yml/badge.svg?branch=2.0.1.dev1
+   :target: https://github.com/medazzo/sbr-generator/actions/workflows/publish.yml
+
 SBR-Generator
 ################
 
