@@ -29,6 +29,7 @@ jobs:
         pip install pytest-cov
     - name: Build package
       run: python -m build
+    - name: Install package
+      run: pip install -e .
     - name: test package
-      run: python -m pytest    
-
+      run: python -m pytest
