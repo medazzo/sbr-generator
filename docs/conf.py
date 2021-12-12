@@ -32,7 +32,7 @@ try:  # for Sphinx >= 1.7
 except ImportError:
     print(f"Running `sphinx-apidoc` failed!\n")
 output_dir = os.path.join(__location__, "api")
-module_dir = os.path.join(__location__, "../src/copyrightheader")
+module_dir = os.path.join(__location__, "../src/sbr")
 try:
     shutil.rmtree(output_dir)
 except FileNotFoundError:
@@ -87,7 +87,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "copyrightheader"
+project = "sbr"
 copyright = "2021, Mohamed Azzouni"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -99,7 +99,7 @@ copyright = "2021, Mohamed Azzouni"
 # If you don’t need the separation provided between version and release,
 # just set them both to the same value.
 try:
-    from copyrightheader import __version__ as version
+    from sbr import __version__ as version
 except ImportError:
     version = ""
 
@@ -228,7 +228,7 @@ html_static_path = ["_static"]
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "copyrightheader-doc"
+htmlhelp_basename = "sbr-doc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -248,7 +248,7 @@ latex_documents = [
     (
         "index",
         "user_guide.tex",
-        "copyrightheader Documentation",
+        "sbr Documentation",
         "Mohamed Azzouni",
         "manual",
     )

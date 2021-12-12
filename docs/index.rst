@@ -1,8 +1,8 @@
 ===============
-copyrightheader
+SBR-Generator
 ===============
 
-This is the documentation of **copyrightheader**.
+This is the documentation of **SBR-Generator**.
 
 .. note::
 
