@@ -227,3 +227,4 @@ Set python Virtual env environment and start developing
     $ python3 -m venv .venv
     $ sourec .venv/bin/activate
     (.venv) $ python setup.py develop
+    (.venv) $ pip install -r requirements.txt

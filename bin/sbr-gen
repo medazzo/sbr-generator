@@ -15,6 +15,6 @@ References:
     - https://setuptools.readthedocs.io/en/latest/userguide/entry_point.html
     - https://pip.pypa.io/en/stable/reference/pip_install
 """
-from easinGenerator import run
+from sbr.easinGenerator import run
 
 run()

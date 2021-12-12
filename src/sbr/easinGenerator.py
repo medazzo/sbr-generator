@@ -9,14 +9,15 @@
 # This file contains class for easin Args Manager
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 import sys, argparse
-from easinAnalyser import ConfigLoader, Analyser
-from easinModels import Project, Helper
+from sbr.easinAnalyser import ConfigLoader, Analyser
+from sbr.easinModels import Project, Helper
 import pprint, os, shutil
 import jinja2
 import uuid
 import bcrypt
 from jinja2 import Environment, BaseLoader
-from easinTemplates import templates
+import pkg_resources  
+from sbr.easinTemplates import templates
 
 DefaultOutput_Dir = "./tmp-out"
 
@@ -498,6 +499,8 @@ def main(argv):
     parser = argparse.ArgumentParser(
         prog='SBR Generator',
         description='SBR generator: Generate Spring Boot Rest source code.')
+    version = pkg_resources.require("sbr")[0].version    
+    parser.add_argument("--version", action="version", version=version)
     parser.add_argument('-v', '--mode-verbose', dest='verbose', action='store_true', help='Enable verbose traces')
     parser.add_argument('-t', '--enable-tests', dest='tests', action='store_true', help='Enable tests')
     parser.add_argument('-s', '--disable-security', dest='security', action='store_false', help='Disable security')
@@ -509,7 +512,7 @@ def main(argv):
     Helper.logger.info("[  ok ] verbose     : '{}'     ".format(args.verbose))
     Helper.logger.info("[  ok ] tests       : '{}'     ".format(args.tests))
     Helper.logger.info("[  ok ] security    : '{}'     ".format(args.security))
-    Helper.logger.info("[  ok ] configfile  : '{}'   ".format(args.configfile))
+    Helper.logger.info("[  ok ] configfile  : '{}'     ".format(args.configfile))
     Helper.logger.info("[  ok ] outputDir   : '{}'     ".format(args.outputDir))
     # Load configuration
     econ = ConfigLoader(args.configfile, args.verbose)

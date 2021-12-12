@@ -11,8 +11,8 @@
 from enum import Enum, unique
 import yaml
 import pprint
-from easinModels import Entity, Configuration
-from easinModels import Project, Helper
+from sbr.easinModels import Entity, Configuration
+from sbr.easinModels import Project, Helper
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #  Analyser Class
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
