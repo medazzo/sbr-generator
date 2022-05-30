@@ -28,10 +28,10 @@ $ source .venv/bin/activate
 
 you need to Set python Virtual env environment and start developing
 ```
-1- $ python -m venv .venv
-2- $ .venv/Scripts/Activate.ps1     
-3- (.venv) $ pip install -r requirements.txt 
-4- (.venv) $ python setup.py develop
+$ python -m venv .venv
+$ .venv/Scripts/Activate.ps1     
+(.venv) $ pip install -r requirements.txt 
+(.venv) $ python setup.py develop
 ```
 
 ### Prerequisites
@@ -128,11 +128,9 @@ mvn spring-boot:run -Dmaven.test.skip=true
 ```
 ## With Windows (example as editor "Spring Tools Suite")
 
-1- import project to the editor as maven project 
-
-2- install PostgreSQL 
-
-3- run as spring boot application
+    import project to the editor as maven project 
+    install PostgreSQL 
+    run as spring boot application
 
 This will run the server, you can access the swagger ui generated documentation on <br/>
 http://localhost:8080/project.name/project.version/swagger-ui.html
