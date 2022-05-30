@@ -53,7 +53,6 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties.hibernate.temp.use_jdbc_metadata_defaults: false
   jackson:
     serialization:
       FAIL_ON_EMPTY_BEANS: False
