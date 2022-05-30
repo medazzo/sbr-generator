@@ -40,10 +40,10 @@ server:
 spring:
   profiles: dev
   datasource:
-    url: jdbc:h2:/tmp/{{project.name}}/sbr-gen-database.h2;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:postgresql://localhost:5432/essDB
     username: easin
-    password:
-    driverClassName: org.h2.Driver
+    password: Easin
+    driverClassName: org.postgresql.Driver
   jpa:
     generate-ddl: true
     properties:
@@ -53,6 +53,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties.hibernate.temp.use_jdbc_metadata_defaults: false
   jackson:
     serialization:
       FAIL_ON_EMPTY_BEANS: False
@@ -1583,6 +1584,7 @@ public class MyErrorController implements ErrorController {
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
