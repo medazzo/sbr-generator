@@ -40,10 +40,10 @@ server:
 spring:
   profiles: dev
   datasource:
-    url: jdbc:h2:/tmp/{{project.name}}/sbr-gen-database.h2;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:postgresql://localhost:5432/essDB
     username: easin
-    password:
-    driverClassName: org.h2.Driver
+    password: Easin
+    driverClassName: org.postgresql.Driver
   jpa:
     generate-ddl: true
     properties:
@@ -1583,6 +1583,7 @@ public class MyErrorController implements ErrorController {
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -2477,7 +2478,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                                                 "/status/*",
                                                 "/api/auth/*",
                                                 "/h2-console/**",
-                                                "/api/user/new").permitAll()
+                                                "/api/user/new",
+                                                "/swagger-resources/configuration/ui",
+                                                "/swagger-resources").permitAll()
             .anyRequest().authenticated()
             .and().exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
             .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
