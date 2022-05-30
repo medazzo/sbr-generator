@@ -14,7 +14,7 @@ SBR generator is a  paython package that provide a Spring Boot Rest Generator cl
 
 The Generated source code is a CRUD Rest Spring Boot Server, ready to build and run .  
 
-## How to develop
+## How to develop in Linux
 
 you need to Set python Virtual env environment and start developing
 ```
@@ -22,6 +22,16 @@ $ python3 -m venv .venv
 $ source .venv/bin/activate
 (.venv) $ pip install -r requirements.txt
 (.venv) $ python setup.py develop
+```
+
+## How to develop in Windows
+
+you need to Set python Virtual env environment and start developing
+```
+1- $ python -m venv .venv
+2- $ .venv/Scripts/Activate.ps1     
+3- (.venv) $ pip install -r requirements.txt 
+4- (.venv) $ python setup.py develop
 ```
 
 ### Prerequisites
@@ -109,11 +119,20 @@ The generated source code is a spring boot rest maven project with a read me fil
 
 To build and run   :
 
+## With Linux
+
 ```
 cd testServer-0.0.1/
 mvn clean package -Dmaven.test.skip=true
 mvn spring-boot:run -Dmaven.test.skip=true
 ```
+## With Windows (example as editor "Spring Tools Suite")
+
+1- import project to the editor as maven project 
+
+2- install PostgreSQL 
+
+3- run as spring boot application
 
 This will run the server, you can access the swagger ui generated documentation on <br/>
 http://localhost:8080/project.name/project.version/swagger-ui.html
